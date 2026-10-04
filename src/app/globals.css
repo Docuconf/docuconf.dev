@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+:root {
+	--bg: #ffffff;
+	--fg: #0b1220;
+	--muted: #556070;
+	--border: #e3e7ee;
+	--card: #f6f8fb;
+	--accent: #0a7ea4;
+	--accent-soft: #e3f4fa;
+	--accent-fg: #ffffff;
+	--danger: #b91c1c;
+	--ok: #15803d;
+	--terminal-bg: #0b1220;
+	--terminal-fg: #cbd5e1;
+	--terminal-muted: #64748b;
+	--terminal-danger: #f87171;
+	--terminal-ok: #4ade80;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #0a0e15;
+		--fg: #e6edf3;
+		--muted: #97a3b4;
+		--border: #1d2633;
+		--card: #101722;
+		--accent: #2eb3d6;
+		--accent-soft: #0c2a3a;
+		--accent-fg: #04212c;
+		--danger: #f87171;
+		--ok: #4ade80;
+		--terminal-bg: #05080d;
+	}
+}
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-fg: var(--fg);
+	--color-muted: var(--muted);
+	--color-border: var(--border);
+	--color-card: var(--card);
+	--color-accent: var(--accent);
+	--color-accent-soft: var(--accent-soft);
+	--color-accent-fg: var(--accent-fg);
+	--color-danger: var(--danger);
+	--color-ok: var(--ok);
+	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+	color-scheme: light dark;
+}
+
+body {
+	background: var(--bg);
+	color: var(--fg);
+}
+
+/* Shiki emits both themes; switch to the dark one with the OS setting. */
+.shiki {
+	margin: 0;
+	padding: 1rem 1.25rem;
+	overflow-x: auto;
+	border-radius: 0.75rem;
+	border: 1px solid var(--border);
+	font-size: 0.8125rem;
+	line-height: 1.7;
+}
+@media (prefers-color-scheme: dark) {
+	.shiki,
+	.shiki span {
+		color: var(--shiki-dark) !important;
+		background-color: var(--shiki-dark-bg) !important;
+	}
+}
+
+/* Prose tuned to the site tokens. */
+.prose {
+	--tw-prose-body: var(--fg);
+	--tw-prose-headings: var(--fg);
+	--tw-prose-links: var(--accent);
+	--tw-prose-bold: var(--fg);
+	--tw-prose-counters: var(--muted);
+	--tw-prose-bullets: var(--muted);
+	--tw-prose-hr: var(--border);
+	--tw-prose-quotes: var(--fg);
+	--tw-prose-quote-borders: var(--border);
+	--tw-prose-code: var(--fg);
+	--tw-prose-th-borders: var(--border);
+	--tw-prose-td-borders: var(--border);
+	max-width: 46rem;
+}
+.prose :where(code):not(:where(pre *)) {
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 0.3rem;
+	padding: 0.1rem 0.35rem;
+	font-weight: 500;
+}
+.prose :where(code):not(:where(pre *))::before,
+.prose :where(code):not(:where(pre *))::after {
+	content: none;
+}
+.prose pre.shiki {
+	margin: 1.25em 0;
+	padding: 1rem 1.25rem;
+}
+.prose :where(table) {
+	display: block;
+	overflow-x: auto;
+}
+.prose :where(input[type='checkbox']) {
+	accent-color: var(--accent);
+	margin-inline-end: 0.4rem;
+}
+.prose :where(ul.contains-task-list) {
+	list-style: none;
+	padding-inline-start: 0;
+}
+
+/* A code block that opens a tab panel sits flush under the tab bar. */
+[role='tabpanel'] > pre.shiki:first-child,
+[role='tabpanel'] > div:first-child > pre.shiki {
+	margin-top: 0;
+}

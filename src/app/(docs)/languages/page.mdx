@@ -1,0 +1,123 @@
+import { Callout } from '@/components/callout';
+import { Tab, Tabs } from '@/components/tabs';
+
+export const metadata = {
+	title: 'Languages',
+	description: 'docuconf extends the leading env library in each language. Here is what that looks like.',
+};
+
+# Languages
+
+
+Each SDK builds on the library that ecosystem already trusts. That library keeps loading and parsing; docuconf adds descriptions, secrets, constraints and contract export.
+
+<Callout>
+These examples show the planned SDK APIs. They may change while the specification is in `v1alpha1`.
+</Callout>
+
+<Tabs>
+<Tab label="Go">
+
+On [caarlos0/env](https://github.com/caarlos0/env). The `env` and `envDefault` tags are caarlos0's own. docuconf adds `secret` and the constraint tags, and takes each description from the field's doc comment.
+
+```go
+type Config struct {
+    // Primary Postgres connection string.
+    DatabaseURL string `env:"DATABASE_URL,required" secret:"true" schemes:"postgres,postgresql"`
+
+    // HTTP listen port.
+    Port int `env:"PORT" envDefault:"8080" min:"1" max:"65535"`
+
+    // Upstream request timeout.
+    Timeout time.Duration `env:"REQUEST_TIMEOUT" envDefault:"30s" max:"5m"`
+}
+
+cfg, err := docuconf.ParseAs[Config]()
+```
+
+`docuconf export` reads the struct by static analysis, so exporting needs no running program, and doc comments are available as descriptions.
+
+</Tab>
+<Tab label="TypeScript">
+
+On [T3 Env](https://env.t3.gg), with any Standard Schema validator: Zod, Valibot or ArkType.
+
+```ts
+import { createEnv, secret, duration } from "@docuconf/t3";
+import { z } from "zod";
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: secret(z.url({ protocol: /^postgres(ql)?$/ }).describe("Primary Postgres connection string")),
+    PORT: z.coerce.number().int().min(1).max(65535).default(8080).describe("HTTP listen port"),
+    REQUEST_TIMEOUT: duration().default("30s").describe("Upstream request timeout"),
+  },
+  runtimeEnv: process.env,
+});
+```
+
+`createEnv` is T3's own, re-exported. Build-time `client` variables are left out of the runtime contract.
+
+</Tab>
+<Tab label="Ruby">
+
+On [anyway_config](https://github.com/palkan/anyway_config).
+
+```ruby
+class BillingConfig < Anyway::Config
+  include Docuconf::Anyway
+  config_name :billing
+
+  attr_config :database_url, port: 8080, request_timeout: "PT30S"
+  required :database_url
+  coerce_types port: :integer, request_timeout: :duration
+
+  describe database_url: "Primary Postgres connection string",
+           port: "HTTP listen port",
+           request_timeout: "Upstream request timeout"
+  secret :database_url, schemes: %w[postgres postgresql]
+  constrain port: {min: 1, max: 65535}
+end
+```
+
+Export with `bin/rails docuconf:export`.
+
+</Tab>
+<Tab label=".NET">
+
+On the Options pattern, DataAnnotations and `appsettings.json`.
+
+```csharp
+[EnvContract("billing-api", Section = "Billing")]
+public sealed class BillingOptions
+{
+    [Required, Secret, UrlSchemes("postgres", "postgresql"), Description("Primary Postgres connection string")]
+    public string DatabaseUrl { get; set; } = "";
+
+    [Range(1, 65535), Description("HTTP listen port")]
+    public int Port { get; set; } = 8080;
+}
+
+builder.Services.AddOptions<BillingOptions>().BindConfiguration("Billing").ValidateOnStart();
+```
+
+A source generator writes the contract during `dotnet build`, including values from `appsettings.json` and `appsettings.{Environment}.json`.
+
+</Tab>
+<Tab label="Python">
+
+On [pydantic-settings](https://github.com/pydantic/pydantic-settings). Planned.
+
+```python
+class Settings(BaseSettings):
+    database_url: SecretStr = Field(description="Primary Postgres connection string")
+    port: int = Field(8080, ge=1, le=65535, description="HTTP listen port")
+    request_timeout: timedelta = Field(timedelta(seconds=30), description="Upstream request timeout")
+```
+
+</Tab>
+</Tabs>
+
+## Your language is not here?
+
+Any language can have an SDK. The specification defines what an SDK must do, and a shared conformance suite checks it mechanically. See [Get involved](/community/).
