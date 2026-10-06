@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { Code } from '@/components/code';
 import { Tab, Tabs } from '@/components/tabs';
-import { GITHUB_ORG, SPEC_URL } from '@/components/site';
+import { GITHUB_ORG } from '@/components/site';
+import { JsonLd } from '@/components/spec-tables';
+import { siteGraph } from '@/lib/seo';
 
 const declarations = {
 	go: `type Config struct {
@@ -160,6 +162,7 @@ function Section({
 export default function Home() {
 	return (
 		<>
+			<JsonLd data={siteGraph()} />
 			{/* Hero */}
 			<section className="relative overflow-hidden border-b border-border">
 				<div
@@ -343,9 +346,9 @@ export default function Home() {
 						the design.
 					</p>
 					<div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
-						<a href={SPEC_URL} className="rounded-full bg-accent px-5 py-2.5 text-accent-fg">
+						<Link href="/spec/" className="rounded-full bg-accent px-5 py-2.5 text-accent-fg">
 							Read the spec
-						</a>
+						</Link>
 						<a href={GITHUB_ORG} className="rounded-full border border-border bg-bg px-5 py-2.5">
 							GitHub
 						</a>

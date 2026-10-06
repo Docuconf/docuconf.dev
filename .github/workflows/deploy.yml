@@ -32,6 +32,9 @@ jobs:
           NEXT_TELEMETRY_DISABLED: "1"
           # "" with a custom domain, "/docuconf.dev" on docuconf.github.io.
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Absolute URLs in JSON-LD, the sitemap and llms.txt. Falls back to
+          # https://docuconf.dev for pull-request builds.
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:

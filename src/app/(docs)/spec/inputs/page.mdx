@@ -1,0 +1,158 @@
+import { Callout } from '@/components/callout';
+import {
+	EncodingTables,
+	FileFieldsTable,
+	FileSourcesTable,
+	FileTypesTable,
+	InjectorsTable,
+	JsonLd,
+	OverlayHostsTable,
+	ValueSourcesTable,
+	VarFieldsTable,
+	VarTypesTable,
+} from '@/components/spec-tables';
+import { pageGraph, termSets } from '@/lib/seo';
+
+export const metadata = {
+	title: 'Inputs: variables, files, sources and overlays',
+	description:
+		'Every input a docuconf contract can describe: 9 environment variable types, 6 file types, value and file sources, wire encodings, secret injection (Bank-Vaults, Vault Agent) and config-file overlays such as appsettings.Production.json.',
+	alternates: { canonical: '/spec/inputs/' },
+};
+
+<JsonLd
+	data={pageGraph({
+		path: '/spec/inputs/',
+		title: 'docuconf inputs',
+		description: metadata.description,
+		extra: termSets().filter((t) => t['@id'].includes('/spec/inputs/')),
+	})}
+/>
+
+# Inputs
+
+An application reads its configuration from two places: **environment variables** and **files**. A contract describes both. For each input it records the type, the constraints, whether it is required or secret, and — because libraries disagree — exactly how the app parses it.
+
+The platform supplies each input from a **source**: a literal, a Kubernetes reference, an injector, a mounted file or a config-file overlay. Whatever the source, the value the app finally sees is checked twice: by the platform before deploy where it can be, and by the SDK at boot always.
+
+## Environment variables
+
+`vars` is a map keyed by the variable name, which must match `^[A-Z][A-Z0-9_]*$`. SDKs map idiomatic field names (`databaseUrl`, `DatabaseUrl`) to this form.
+
+<h3 id="variable-types">Variable types</h3>
+
+The type set is closed in v1alpha1: a new type needs a spec change, because every SDK must parse it identically.
+
+<VarTypesTable />
+
+- `pattern` is RE2 and matches **anywhere** in the value; anchor it with `^…$` to match the whole value. RE2's `\d`, `\w`, `\s` and `\b` are ASCII-only.
+- `json` variables and `config` files carry a JSON Schema **generated from the app's own type**, so the platform checks structured values against the type the app deserializes into.
+- An **empty string** is a value for `string`. For every other type it means *unset*.
+
+### Fields on every variable
+
+<VarFieldsTable />
+
+<h3 id="value-sources">Value sources</h3>
+
+A value is usually a literal. Some only exist in the cluster or are supplied at runtime, so the platform may give a reference instead:
+
+<ValueSourcesTable />
+
+A **secret** variable is never a literal. It comes from a `secretKeyRef` or from an injector, and its content is checked only at boot. No docuconf tool ever prints a secret value.
+
+<h3 id="injection">Cloud-native injection</h3>
+
+Many platforms do not put configuration into the pod spec at all. A mutating webhook, an init process or a wrapper resolves secrets at startup and hands the app a ready environment, or writes files the app reads. docuconf supports this by design:
+
+1. **The SDK validates the process as it actually starts.** Configuration is read from the real process environment and filesystem at startup, after any injector has run. A value from Bank-Vaults or `op run` is checked exactly like one from the pod spec.
+2. **The contract does not care who supplies a value.** It describes what the app accepts. The platform's values document says who supplies it.
+3. **The platform declares injected inputs as `injected`**, naming the provider and, when the injector reads a reference from the env value, that reference. `docuconf vet` checks the reference's shape, not the secret, and renders it verbatim for the injector to resolve.
+
+```yaml
+# Platform values for orders-api
+DATABASE_URL:
+  injected: {provider: bank-vaults, ref: "vault:secret/data/orders/db#url"}
+OTEL_EXPORTER_OTLP_ENDPOINT:
+  injected: {provider: otel-operator}        # set by the operator; not rendered
+LOG_LEVEL: warn                               # an ordinary literal
+```
+
+<InjectorsTable />
+
+<Callout title="Specified, not built">
+The `injected` sources are part of this revision of the specification; the CUE meta-schema and `docuconf vet` do not accept them yet. SDKs already validate injected values, because they read the process environment at startup.
+</Callout>
+
+## Files
+
+`files` is a map keyed by input name, a DNS label because it names a volume.
+
+<h3 id="file-types">File types</h3>
+
+<FileTypesTable />
+
+### Fields on every file input
+
+<FileFieldsTable />
+
+Mount rules, enforced by the meta-schema: a file is mounted at its parent directory, and a TLS pair at its own directory; no two inputs share a directory; none is mounted over a reserved directory such as `/`, `/etc`, `/etc/ssl/certs`, `/usr`, `/var` or `/app`; files are projected with `items`, never `subPath`, so rotation reaches them; secret files are mode `0400`, others `0444`.
+
+<h3 id="file-sources">File sources</h3>
+
+<FileSourcesTable />
+
+**Resolved** fields — a Secret's `type` and `keys`, a Certificate's spec — are metadata the platform tooling reads from the cluster. They are never secret contents. When absent, those checks move to boot.
+
+**Rotation.** `reload: watch` means the app rereads the file, so the platform does nothing. `reload: restart` makes the platform roll the pods when the source changes. Inline content is content-hashed, so it always rolls the pods.
+
+<h2 id="overlays">Config-file overlays</h2>
+
+Hosts such as .NET, Spring Boot and Rails layer configuration files under environment variables. A common cloud-native pattern keeps the app's baked-in files and adds one more file, mounted by the platform, between them and the environment:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Baked into the image: defaults and per-environment values.
+builder.Configuration.AddJsonFile("appsettings.json", optional: false);
+
+// 2. Mounted by the platform from a ConfigMap, reloaded on change.
+builder.Configuration.AddJsonFile("/app/config/appsettings.Production.json", optional: true, reloadOnChange: true);
+
+// 3. Environment variables (including injected secrets) win.
+builder.Configuration.AddEnvironmentVariables();
+```
+
+A contract describes the overlay, and the platform renders it:
+
+```cue
+overlays: platform: {
+	format: "json"
+	path:   "/app/config/appsettings.Production.json"
+	reload: "watch"   // reloadOnChange: true
+}
+```
+
+- **Precedence** is fixed and the same on every host: baked-in base file, then profile file, then the platform overlay, then environment variables.
+- **The platform routes variables to the overlay** in its values document. `docuconf render` writes each value at the variable's `configKey` (`Orders:CheckoutTimeout` becomes `{"Orders": {"CheckoutTimeout": …}}`) in **native types** — numbers, booleans, arrays — rather than env-var strings, and ships the file as a ConfigMap mounted at `path`.
+- **Validation is identical**: overlay values are typed values checked by `#Validate`, the same as env values. Secrets never go in an overlay, because overlays are ConfigMaps.
+- **Overlays add, never replace.** The overlay sits at its own path, so the app's baked-in `appsettings.Production.json` and its values still apply. Mounting over the baked-in file would silently discard them, and the meta-schema rejects an overlay path that is also a baked-in config file.
+- `reload: watch` maps to the host's reload-on-change, so the app sees new values without a restart (in .NET, through `IOptionsMonitor<T>`). `restart` rolls the pods instead.
+
+<OverlayHostsTable />
+
+<Callout title="Specified, not built">
+Overlays are part of this revision of the specification. The .NET SDK reads its baked-in `appsettings*.json` files today; reading a declared overlay, and rendering one with `docuconf render`, come next.
+</Callout>
+
+<h2 id="encodings">Wire encodings</h2>
+
+Environment values are strings. The platform always holds **typed** values — lists as lists, durations in Go syntax — and the renderer writes each one in the form the app's library parses. For most types every library agrees. Lists and durations differ, so the contract records the app's encoding:
+
+<EncodingTables />
+
+Renderers double every `$` in a literal (`$` becomes `$$`), because Kubernetes expands `$(NAME)` in env values. Platform authors never see encodings: they write `"90s"` and `["a", "b"]` for every app.
+
+## Profiles
+
+Values in files the image ships with are part of what the app runs with, so the contract includes them. A value in an always-loaded base file (`appsettings.json`, `application.yml`) is a `default`. A value in a profile file (`appsettings.Staging.json`) goes in `profiles.defaults`, applied when the selector variable (`ASPNETCORE_ENVIRONMENT`, `SPRING_PROFILES_ACTIVE`, `RAILS_ENV`) selects that profile. A required variable is satisfied when the platform or the selected profile supplies it. A secret may never have a value in any file.

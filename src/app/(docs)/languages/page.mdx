@@ -88,7 +88,7 @@ Export with `bin/rails docuconf:export`.
 On the Options pattern, DataAnnotations and `appsettings.json`.
 
 ```csharp
-[EnvContract("billing-api", Section = "Billing")]
+[ConfigContract("billing-api", Section = "Billing")]
 public sealed class BillingOptions
 {
     [Required, Secret, UrlSchemes("postgres", "postgresql"), Description("Primary Postgres connection string")]

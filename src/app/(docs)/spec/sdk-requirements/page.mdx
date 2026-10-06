@@ -1,0 +1,71 @@
+import { Callout } from '@/components/callout';
+import { ErrorCodesTable, JsonLd, MustList, ShouldList } from '@/components/spec-tables';
+import { SdkCaveats, SdkMatrix } from '@/components/sdk-matrix';
+import { pageGraph, sdkSourceCode } from '@/lib/seo';
+
+export const metadata = {
+	title: 'SDK requirements: what every language SDK must support',
+	description:
+		'What a docuconf language SDK must do to conform: build on the host config library, cover every type, export a deterministic contract, validate the process environment at startup after injection, check every file, support config-file overlays, and report stable error codes. Plus the status of all 11 SDKs.',
+	alternates: { canonical: '/spec/sdk-requirements/' },
+};
+
+<JsonLd
+	data={pageGraph({
+		path: '/spec/sdk-requirements/',
+		title: 'docuconf SDK requirements',
+		description: metadata.description,
+		extra: sdkSourceCode(),
+	})}
+/>
+
+# SDK requirements
+
+A docuconf SDK has one job: let an app declare its configuration in the way its ecosystem already does, and add what is missing for a platform contract. There is an SDK for Go, TypeScript, .NET, Python, Ruby, Java, Kotlin, Rust, Swift, Elixir and Gleam.
+
+## Build on the host library
+
+Every language already has a configuration library teams trust. **An SDK must extend it, not replace it.** The host keeps loading, parsing and binding; its users keep its API, docs and idioms. The SDK adds only:
+
+1. **Metadata the host cannot express** — descriptions, `secret`, constraints with no host equivalent.
+2. **Validation the host does not do**, run after the host has parsed.
+3. **Contract export**, from the same declaration, so the contract cannot drift from the code.
+
+Each SDK sets the contract's `encoding` fields to whatever its host parses, so the host never needs a custom parser for platform-rendered values. Where the host conflicts with a rule in the spec (for example, empty-string handling), the SDK adapts the host with a pre-check.
+
+## Cloud-native by default
+
+Every SDK must work however the configuration arrives:
+
+- **Environment variables set in the pod spec** — literals and Kubernetes references.
+- **Values injected at runtime** — Bank-Vaults' `vault-env`, wrappers such as `op run` or `doppler run`, operators and webhooks. The SDK reads the process environment **when the process starts, after injection**, and validates injected values exactly like any other. It never resolves secret references itself and never reads configuration at build time.
+- **Files mounted or written at runtime** — Secrets, ConfigMaps, CSI volumes, cert-manager certificates, Vault Agent templates — checked at boot and, with `reload: watch`, reloaded when they rotate.
+- **Config-file overlays** on hosts that layer files — a platform-mounted `appsettings.Production.json`, `application.yml` or `Config.toml`, loaded between the baked-in files and the environment.
+
+See [Inputs](/spec/inputs/#injection) for how the contract and the platform describe each case.
+
+## Requirements
+
+A conforming SDK **must**:
+
+<MustList />
+
+And **should**:
+
+<ShouldList />
+
+<h2 id="error-codes">Boot-time error codes</h2>
+
+Every violation found at boot is reported with one of these codes, so platforms and alerting can act on them the same way in every language. Length limits use `out_of_range`; an expired certificate, a disallowed key algorithm or a broken chain is `certificate_invalid`; a CA bundle with too few certificates is `file_malformed`.
+
+<ErrorCodesTable />
+
+<h2 id="sdks">The SDKs today</h2>
+
+<SdkMatrix />
+
+<SdkCaveats />
+
+<Callout title="Conformance">
+A shared, language-neutral conformance suite — golden exports, load cases with expected error codes, and contract-first loading — is specified and not yet built. Until it exists, each SDK's export is checked with `cue vet` against the meta-schema in its own CI.
+</Callout>
