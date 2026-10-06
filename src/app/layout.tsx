@@ -32,7 +32,6 @@ export const metadata: Metadata = {
 	openGraph: { type: 'website', siteName: SITE_NAME, url: '/', title: 'docuconf: typed environment contracts', description: DESCRIPTION },
 	twitter: { card: 'summary', title: 'docuconf: typed environment contracts', description: DESCRIPTION },
 	alternates: {
-		canonical: '/',
 		types: { 'application/ld+json': '/docuconf.jsonld', 'text/plain': '/llms.txt' },
 	},
 	icons: { icon: `${process.env.BASE_PATH ?? ''}/favicon.svg` },

@@ -1,7 +1,12 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
 export const metadata = {
 	title: 'Vision',
 	description: 'Why docuconf exists, what it believes, and where it is going.',
+	alternates: { canonical: '/vision/' },
 };
+
+<JsonLd data={pageGraph({ path: '/vision/', title: metadata.title, description: metadata.description })} />
 
 # Vision
 

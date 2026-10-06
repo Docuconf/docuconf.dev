@@ -1,7 +1,12 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
 export const metadata = {
 	title: 'Config is not feature flags',
 	description: 'Why docuconf deliberately leaves feature flags out.',
+	alternates: { canonical: '/feature-flags/' },
 };
+
+<JsonLd data={pageGraph({ path: '/feature-flags/', title: metadata.title, description: metadata.description })} />
 
 # Config is not feature flags
 

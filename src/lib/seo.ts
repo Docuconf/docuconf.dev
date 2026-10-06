@@ -15,6 +15,7 @@ import {
 	VALUE_SOURCES,
 	VAR_TYPES,
 } from './spec-data';
+import { SDK_ROWS } from './sdk-data';
 
 export const SITE_URL = (process.env.SITE_URL || 'https://docuconf.dev').replace(/\/$/, '');
 export const SITE_NAME = 'docuconf';
@@ -28,26 +29,8 @@ const ORG_ID = absolute('/#organization');
 const SITE_ID = absolute('/#website');
 const SPEC_ID = absolute('/spec/#specification');
 
-export type Sdk = {
-	language: string;
-	repo: string;
-	host: string;
-	package: string;
-};
-
-export const SDKS: Sdk[] = [
-	{ language: 'Go', repo: 'docuconf-go', host: 'caarlos0/env', package: 'github.com/docuconf/docuconf-go' },
-	{ language: 'TypeScript', repo: 'docuconf-js', host: 'T3 Env (Standard Schema: Zod, Valibot, ArkType)', package: '@docuconf/t3' },
-	{ language: 'C#', repo: 'docuconf-dotnet', host: 'Microsoft.Extensions.Options and appsettings', package: 'Docuconf.Options' },
-	{ language: 'Python', repo: 'docuconf-python', host: 'pydantic-settings', package: 'docuconf' },
-	{ language: 'Ruby', repo: 'docuconf-ruby', host: 'anyway_config', package: 'docuconf' },
-	{ language: 'Java', repo: 'docuconf-java', host: 'Spring Boot @ConfigurationProperties', package: 'dev.docuconf' },
-	{ language: 'Kotlin', repo: 'docuconf-kotlin', host: 'Hoplite', package: 'dev.docuconf' },
-	{ language: 'Rust', repo: 'docuconf-rust', host: 'figment and serde', package: 'docuconf' },
-	{ language: 'Swift', repo: 'docuconf-swift', host: 'swift-configuration', package: 'Docuconf' },
-	{ language: 'Elixir', repo: 'docuconf-elixir', host: 'config/runtime.exs', package: 'docuconf' },
-	{ language: 'Gleam', repo: 'docuconf-gleam', host: 'Gleam stdlib (envoy)', package: 'docuconf' },
-];
+/** The SDKs, as listed in sdk-data.ts. */
+export const SDKS = SDK_ROWS.map((r) => ({ language: r.language, repo: r.repo, host: r.host, package: r.package }));
 
 export function organization() {
 	return {
@@ -79,7 +62,7 @@ export function sdkSourceCode() {
 		'@id': `${GITHUB_ORG_URL}/${s.repo}#code`,
 		name: `docuconf for ${s.language}`,
 		codeRepository: `${GITHUB_ORG_URL}/${s.repo}`,
-		programmingLanguage: s.language,
+		programmingLanguage: s.language === '.NET' ? 'C#' : s.language,
 		description: `docuconf SDK for ${s.language}, built on ${s.host}. Package: ${s.package}.`,
 		isBasedOn: { '@id': SPEC_ID },
 		publisher: { '@id': ORG_ID },

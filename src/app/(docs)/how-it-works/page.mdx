@@ -1,9 +1,14 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
 import { Callout } from '@/components/callout';
 
 export const metadata = {
 	title: 'How it works',
 	description: 'The contract, the platform check, and the boot-time check.',
+	alternates: { canonical: '/how-it-works/' },
 };
+
+<JsonLd data={pageGraph({ path: '/how-it-works/', title: metadata.title, description: metadata.description })} />
 
 # How it works
 

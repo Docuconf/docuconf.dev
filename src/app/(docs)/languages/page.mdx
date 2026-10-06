@@ -1,10 +1,15 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
 import { Callout } from '@/components/callout';
 import { Tab, Tabs } from '@/components/tabs';
 
 export const metadata = {
 	title: 'Languages',
 	description: 'docuconf extends the leading env library in each language. Here is what that looks like.',
+	alternates: { canonical: '/languages/' },
 };
+
+<JsonLd data={pageGraph({ path: '/languages/', title: metadata.title, description: metadata.description })} />
 
 # Languages
 

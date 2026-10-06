@@ -1,7 +1,12 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
 export const metadata = {
 	title: 'Roadmap',
 	description: 'What is done, what is next, and what comes later.',
+	alternates: { canonical: '/roadmap/' },
 };
+
+<JsonLd data={pageGraph({ path: '/roadmap/', title: metadata.title, description: metadata.description })} />
 
 # Roadmap
 

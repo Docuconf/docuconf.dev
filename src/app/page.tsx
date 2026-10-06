@@ -5,6 +5,8 @@ import { GITHUB_ORG } from '@/components/site';
 import { JsonLd } from '@/components/spec-tables';
 import { siteGraph } from '@/lib/seo';
 
+export const metadata = { alternates: { canonical: '/' } };
+
 const declarations = {
 	go: `type Config struct {
     // Primary Postgres connection string.
