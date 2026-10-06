@@ -82,7 +82,7 @@ export const VAR_TYPES: VarType[] = [
 	{
 		type: 'list',
 		summary: 'A list of strings or integers.',
-		constraints: 'items (string | int), encoding, separator, minItems, maxItems',
+		constraints: 'items (string | int), encoding, separator, minItems, maxItems, itemMin and itemMax (int items)',
 		platformValue: 'list',
 		wire: 'per encoding: csv, json or indexed',
 	},
@@ -140,14 +140,12 @@ export const VALUE_SOURCES: ValueSource[] = [
 		example: '{injected: {provider: "bank-vaults", ref: "vault:secret/data/db#url"}}',
 		allowedFor: 'every type, including secrets; rendered verbatim as the env value for the injector to resolve',
 		checked: 'reference shape before deploy; the value at boot',
-		status: 'specified',
 	},
 	{
 		source: 'injected, without a reference',
 		example: '{injected: {provider: "otel-operator"}}',
 		allowedFor: 'every type, including secrets; not rendered: a webhook, init process or operator sets it',
 		checked: 'at boot',
-		status: 'specified',
 	},
 ];
 
@@ -300,7 +298,6 @@ export const FILE_SOURCES: FileSource[] = [
 		source: 'injected (Vault Agent and similar)',
 		forTypes: 'any',
 		checkedBeforeDeploy: 'That the injector is named; no volume is rendered, the injector writes the file at path. Checked at boot.',
-		status: 'specified',
 	},
 ];
 
@@ -399,9 +396,9 @@ export const OUTPUTS: Output[] = [
 		id: 'config-overlay',
 		name: 'Config-file overlay',
 		artifact: 'a host-format file (appsettings.Production.json, application.yml, Config.toml) in a ConfigMap',
-		producedBy: 'docuconf render, for variables the platform routes to an overlay',
+		producedBy: 'docuconf render and the Helm library chart, for variables the platform routes to an overlay',
 		consumedBy: 'Hosts that layer config files: .NET, Spring, Rails, figment, Hoplite',
-		status: 'specified',
+		status: 'implemented',
 		notes: 'Values are placed at each variable’s configKey in native types, mounted at the overlay’s path; reload: watch maps to the host’s reload-on-change.',
 	},
 	{
@@ -544,12 +541,18 @@ export const SDK_MUSTS: { title: string; detail: string }[] = [
 		detail: 'HOSTNAME, KUBERNETES_* and the like. The unknown-name check applies only to platform values.',
 	},
 	{ title: 'Support DOCUCONF_FILE_ROOT', detail: 'A directory prepended to every absolute file path, for local runs and tests.' },
-	{ title: 'Pass the conformance suite', detail: 'The shared, language-neutral cases for export, load and contract-first loading.' },
+	{
+		title: 'Offer a contract-first mode',
+		detail: 'Validate an environment against a contract.json with no in-language declaration, parsing every list and duration encoding. The conformance runner uses it.',
+	},
+	{
+		title: 'Pass the conformance suite',
+		detail: 'Every case in docuconf-go’s conformance/cases.json, run through the contract-first mode: the same typed values or the same error codes in every language.',
+	},
 ];
 
 export const SDK_SHOULDS: { title: string; detail: string }[] = [
 	{ title: 'Generate Markdown docs', detail: 'From the declaration.' },
-	{ title: 'Contract-first mode', detail: 'Load contract.cue or contract.json at runtime with no in-language declaration.' },
 	{
 		title: 'Framework integration',
 		detail: 'A Railtie, ValidateOnStart in .NET, a Next.js or NestJS adapter, a Spring auto-configuration.',
@@ -565,7 +568,7 @@ export const SDK_SHOULDS: { title: string; detail: string }[] = [
 export const ERROR_CODES: { code: string; meaning: string }[] = [
 	{ code: 'missing_required', meaning: 'A required variable or file input has no value.' },
 	{ code: 'invalid_type', meaning: 'The value does not parse as its type.' },
-	{ code: 'out_of_range', meaning: 'Outside min/max, or a string or text file outside its length limits.' },
+	{ code: 'out_of_range', meaning: 'Outside min/max or the 64-bit range, a list item outside itemMin/itemMax, or a string or text file outside its length limits.' },
 	{ code: 'pattern_mismatch', meaning: 'A string or text file does not match its pattern.' },
 	{ code: 'not_in_enum', meaning: 'Not one of the enum’s values.' },
 	{ code: 'invalid_scheme', meaning: 'A URL with a scheme not in schemes.' },
