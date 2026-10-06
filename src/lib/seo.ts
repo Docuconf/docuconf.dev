@@ -21,6 +21,7 @@ export const SITE_URL = (process.env.SITE_URL || 'https://docuconf.dev').replace
 export const SITE_NAME = 'docuconf';
 export const GITHUB_ORG_URL = 'https://github.com/docuconf';
 export const SPEC_SOURCE_URL = 'https://github.com/docuconf/docuconf-go/blob/main/spec/SPEC.md';
+export const LICENSE_URL = 'https://opensource.org/license/mit';
 
 /** An absolute URL for a site path such as "/spec/". */
 export const absolute = (path: string) => `${SITE_URL}${path}`;
@@ -66,6 +67,7 @@ export function sdkSourceCode() {
 		description: `docuconf SDK for ${s.language}, built on ${s.host}. Package: ${s.package}.`,
 		isBasedOn: { '@id': SPEC_ID },
 		publisher: { '@id': ORG_ID },
+		license: LICENSE_URL,
 	}));
 }
 
@@ -142,6 +144,7 @@ export function specification() {
 		about: `${KIND} documents, ${API_VERSION}`,
 		version: SPEC_VERSION,
 		isBasedOn: SPEC_SOURCE_URL,
+		license: LICENSE_URL,
 		publisher: { '@id': ORG_ID },
 		isPartOf: { '@id': SITE_ID },
 		hasPart: ['/spec/inputs/', '/spec/outputs/', '/spec/sdk-requirements/'].map((p) => ({ '@id': absolute(`${p}#article`) })),
