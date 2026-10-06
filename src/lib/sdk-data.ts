@@ -1,5 +1,5 @@
 // What each language SDK supports today, taken from each repository's code and
-// README (October 2026). Update it with the SDKs; the SDK requirements page,
+// README (October 2026). Conformance results come from each SDK's conformance runner. Update it with the SDKs; the SDK requirements page,
 // llms-full.txt and the JSON-LD all read it.
 
 export type SdkRow = {
@@ -16,6 +16,8 @@ export type SdkRow = {
 	watch: string;
 	profiles: string;
 	export: string;
+	/** Result of the shared conformance suite (112 cases), and the capability tags it skips. */
+	conformance: string;
 	caveats: string[];
 };
 
@@ -34,6 +36,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'docuconf export -pkg -type',
+		conformance: '112 of 112',
 		caveats: ['caarlos0/env parses int as 32-bit, so that range is exported.', 'No TOML config files, no JKS keystores.'],
 	},
 	{
@@ -50,6 +53,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'npx docuconf export src/env.ts',
+		conformance: '109 of 112 (skips int64, json-schema)',
 		caveats: [
 			'ESM (.mjs) and CommonJS both supported.',
 			'int is limited to the safe-integer range.',
@@ -62,7 +66,7 @@ export const SDK_ROWS: SdkRow[] = [
 		package: 'Docuconf.Options (NuGet)',
 		host: 'Options pattern + appsettings',
 		runtime: '.NET 8, .NET 10',
-		types: '8 (no json)',
+		types: 'all 9',
 		lists: 'indexed',
 		durations: 'timespan',
 		configFormats: 'json',
@@ -70,9 +74,9 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'tls, caBundle, keystore, binary',
 		profiles: 'appsettings.{Environment}.json',
 		export: 'dotnet app.dll docuconf export',
+		conformance: '110 of 112 (skips json-schema)',
 		caveats: [
-			'No json variable type yet.',
-			'Platform-mounted appsettings overlays are specified, not built.',
+			'Platform-mounted appsettings overlays load through AddDocuconfOverlays<T>().',
 			'Export runs at runtime; a build-time source generator is planned.',
 		],
 	},
@@ -90,6 +94,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'docuconf export mod:Settings',
+		conformance: '112 of 112 (json-schema with the jsonschema extra)',
 		caveats: ['No JKS keystores.', 'No profiles.'],
 	},
 	{
@@ -106,6 +111,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: 'Rails YAML (RAILS_ENV)',
 		export: 'rails docuconf:export',
+		conformance: '112 of 112',
 		caveats: ['Rails credentials must be excluded explicitly.', 'TOML needs the tomlrb gem.'],
 	},
 	{
@@ -122,6 +128,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: 'application-{profile}.yml',
 		export: 'annotation processor at compile time',
+		conformance: '112 of 112',
 		caveats: ['Several active profiles at once (a,b) are not supported yet.'],
 	},
 	{
@@ -138,6 +145,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'not offered',
 		profiles: '—',
 		export: 'Docuconf.exportCue()',
+		conformance: '112 of 112',
 		caveats: ['JVM target only so far; the core module is Kotlin Multiplatform-ready.', 'No reload: watch.'],
 	},
 	{
@@ -154,6 +162,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'rejected at declaration',
 		profiles: 'figment profiles',
 		export: 'docuconf::export()',
+		conformance: '112 of 112',
 		caveats: ['No reload: watch.', 'No JKS keystores.'],
 	},
 	{
@@ -170,6 +179,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'when the app consumes changes',
 		profiles: '—',
 		export: 'app docuconf-export',
+		conformance: '110 of 112 (skips json-schema)',
 		caveats: ['Built and tested on Linux; macOS and iOS builds are untested.', 'No TOML, no profiles.'],
 	},
 	{
@@ -186,6 +196,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'with Docuconf.Watcher',
 		profiles: '—',
 		export: 'mix docuconf.export',
+		conformance: '112 of 112',
 		caveats: ['Watched files reload only while the app supervises Docuconf.Watcher.'],
 	},
 	{
@@ -202,6 +213,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'not offered',
 		profiles: '—',
 		export: 'docuconf.write_contract()',
+		conformance: '110 of 112 on Erlang, 109 on JavaScript (skips json-schema; int64 on JavaScript)',
 		caveats: [
 			'Keystores are not opened with their password yet.',
 			'On the JavaScript target, integers beyond 2^53 lose precision.',

@@ -147,8 +147,8 @@ ${table(['Code', 'Meaning'], ERROR_CODES.map((e) => [e.code, e.meaning]))}
 ### SDKs
 
 ${table(
-	['Language', 'Package', 'Host library', 'Lists', 'Durations', 'Profiles', 'reload: watch'],
-	SDK_ROWS.map((r) => [r.language, r.package, r.host, r.lists, r.durations, r.profiles, r.watch]),
+	['Language', 'Package', 'Host library', 'Lists', 'Durations', 'Profiles', 'reload: watch', 'Conformance'],
+	SDK_ROWS.map((r) => [r.language, r.package, r.host, r.lists, r.durations, r.profiles, r.watch, r.conformance]),
 )}
 
 ## FAQ
