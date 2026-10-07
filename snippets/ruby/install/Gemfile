@@ -1,0 +1,6 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# Until the first release, from the main branch:
+gem "docuconf-anyway", git: "https://github.com/Docuconf/docuconf-ruby", branch: "main"

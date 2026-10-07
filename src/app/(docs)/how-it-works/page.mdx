@@ -1,6 +1,8 @@
 import { JsonLd } from '@/components/spec-tables';
 import { pageGraph } from '@/lib/seo';
 import { Callout } from '@/components/callout';
+import { GoVet } from '@/components/go-vet';
+import { StatusBadge } from "@/components/spec-tables";
 
 export const metadata = {
 	title: 'How it works',
@@ -98,16 +100,39 @@ Valid values render to the container's `env`, in the exact string format the app
   value: warn
 ```
 
+### In CI today: `docuconf vet`
+
+The [docuconf CLI](https://github.com/Docuconf/docuconf-go#export-and-validate) runs these checks on a pull request to the platform repository. Here it is on a values file with a secret given as a literal, a typo and an out-of-range port; this is real output, from a run against the Go SDK's orders example in this site's CI:
+
+<GoVet />
+
+### In the cluster: a Crossplane function <StatusBadge status="planned" />
+
+The same checks will also run inside a Crossplane composition, so a bad value that reaches the cluster anyway is reported as a readable condition on the claim instead of a crash loop. It is on the [roadmap](/roadmap/), not built yet. The intended experience:
+
+```text
+$ kubectl get app billing-api
+CONDITION      STATUS
+ContractValid  False
+
+✗ PORT: 70000 is above max 65535
+✗ ALLOWED_ORIGINS: required
+✗ DATABASE_URL: plain-text secret
+  (value redacted)
+
+Nothing was deployed.
+```
+
 ## 3. The boot check
 
-At startup, the SDK validates the real environment against the same declaration. This catches what the platform cannot see, chiefly the contents of secrets, plus values set outside the platform and local development mistakes. It reports every problem at once, never prints a secret, and gives your code typed values.
+At startup, the SDK validates the real environment against the same declaration. This catches what the platform cannot see, chiefly the contents of secrets, plus values set outside the platform and local development mistakes. It reports every problem at once, never prints a secret, and gives your code typed values. Each [Get started](/languages/) page shows the boot error for its SDK.
 
 ## Three checks, three jobs
 
 | When | Who | Catches |
 |---|---|---|
 | Pull request to the platform repo | `docuconf vet` in CI | Bad values, before merge |
-| Composition | Crossplane function | Anything that reached the cluster anyway, and image/contract version skew |
+| Composition (planned) | Crossplane function | Anything that reached the cluster anyway, and image/contract version skew |
 | Boot | Language SDK | Secret contents, values set outside the platform, local dev |
 
 ## Details that matter in practice
@@ -116,8 +141,8 @@ At startup, the SDK validates the real environment against the same declaration.
 
 **Config files in the image.** .NET's `appsettings.{Environment}.json`, Spring profiles and Rails per-environment YAML are part of what the app runs with. The contract records their values, so a value set in `appsettings.Production.json` counts, and a secret committed to one is an error.
 
-**Kubernetes quirks.** Kubernetes expands `$(VAR)` inside env values, so the renderer escapes every `$` in literal values. The project keeps a [catalogue of edge cases](https://github.com/docuconf/docuconf-go/blob/main/docs/EDGE_CASES.md), from service-link collisions to YAML reading `NO` as `false`.
+**Kubernetes quirks.** Kubernetes expands `$(VAR)` inside env values, so the renderer escapes every `$` in literal values. The project keeps a [catalogue of edge cases](https://github.com/Docuconf/docuconf-go/blob/main/docs/EDGE_CASES.md), from service-link collisions to YAML reading `NO` as `false`.
 
 <Callout>
-The full rules are in the [contract specification](https://github.com/docuconf/docuconf-go/blob/main/spec/SPEC.md). The CUE schema behind this page has a test suite you can run with `spec/cue/test.sh`.
+The full rules are in the [contract specification](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md). The CUE schema behind this page has a test suite you can run with `spec/cue/test.sh`.
 </Callout>

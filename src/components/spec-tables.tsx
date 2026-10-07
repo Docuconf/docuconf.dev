@@ -47,7 +47,12 @@ export function StatusBadge({ status }: { status: Status }) {
 
 function Table({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
 	return (
-		<div className="not-prose my-6 overflow-x-auto rounded-xl border border-border">
+		<div
+			role="region"
+			aria-label={`${caption ?? 'Table'} (scrolls sideways)`}
+			tabIndex={0}
+			className="not-prose my-6 overflow-x-auto rounded-xl border border-border"
+		>
 			<table className="w-full border-collapse text-left text-sm">
 				{caption && <caption className="sr-only">{caption}</caption>}
 				<thead className="bg-card">

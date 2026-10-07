@@ -1,5 +1,6 @@
 import { JsonLd } from '@/components/spec-tables';
 import { pageGraph } from '@/lib/seo';
+import { SdkCount, SdkRepoList } from '@/components/sdk-roadmap';
 export const metadata = {
 	title: 'Get involved',
 	description: 'How to help shape docuconf.',
@@ -12,14 +13,20 @@ export const metadata = {
 
 docuconf is at the stage where a single good comment can change the design. The most useful things you can do right now:
 
-- **Review the specification.** Read [SPEC.md](https://github.com/docuconf/docuconf-go/blob/main/spec/SPEC.md) and open an issue on anything unclear, wrong or missing. Its open questions section lists what is still undecided.
-- **Bring your edge cases.** If your platform has bitten you with environment config in a way not yet in [EDGE_CASES.md](https://github.com/docuconf/docuconf-go/blob/main/docs/EDGE_CASES.md), tell us.
-- **Lead an SDK.** Each language SDK should be led by someone who lives in that ecosystem. If you know T3 Env, anyway_config, .NET Options or pydantic-settings well, we would like to hear from you.
+- **Review the specification.** Read [SPEC.md](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md) and open an issue on anything unclear, wrong or missing. Its open questions section lists what is still undecided.
+- **Bring your edge cases.** If your platform has bitten you with environment config in a way not yet in [EDGE_CASES.md](https://github.com/Docuconf/docuconf-go/blob/main/docs/EDGE_CASES.md), tell us.
+- **Try an SDK in a real app.** Each of the <SdkCount /> SDKs is a v0.1 alpha. Start from [Get started](/languages/) and open an issue on that SDK's repository wherever it does not fit how your ecosystem works.
+- **Help an SDK.** Each SDK should be shaped by people who live in its ecosystem. If you know its host library well, review its README and example, and tell us where it fights the library instead of extending it.
+- **Bring a new language.** The [SDK requirements](/spec/sdk-requirements/) say what an SDK must do, and the shared conformance suite checks it.
 - **Try the schema.** `spec/cue/test.sh` runs the CUE meta-schema against valid and invalid examples. Add a case that should fail and does not.
 
 ## Where things live
 
-Everything is under the [docuconf GitHub organization](https://github.com/docuconf). This website has its own repository, `docuconf.dev`. The specification and the Go SDK currently share `docuconf-go`. As the project grows, they will split into a repository for the specification, one per language SDK, and one for the platform tooling.
+Everything is under the [docuconf GitHub organization](https://github.com/Docuconf). This website has its own repository, `docuconf.dev`. Each SDK has its own repository:
+
+<SdkRepoList />
+
+The specification, its conformance suite and the platform tooling (the `docuconf` CLI and the Helm chart) live with the Go SDK in `docuconf-go`. They may move to repositories of their own as the project grows.
 
 ## Licence
 

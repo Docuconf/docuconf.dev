@@ -1,11 +1,12 @@
 import { ErrorCodesTable, JsonLd, MustList, ShouldList } from '@/components/spec-tables';
 import { SdkCaveats, SdkMatrix } from '@/components/sdk-matrix';
 import { pageGraph, sdkSourceCode } from '@/lib/seo';
+import { SdkCount, SdkList } from '@/components/sdk-roadmap';
 
 export const metadata = {
 	title: 'SDK requirements: what every language SDK must support',
 	description:
-		'What a docuconf language SDK must do to conform: build on the host config library, cover every type, export a deterministic contract, validate the process environment at startup after injection, check every file, support config-file overlays, and report stable error codes. Plus the status of all 11 SDKs.',
+		'What a docuconf language SDK must do to conform: build on the host config library, cover every type, export a deterministic contract, validate the process environment at startup after injection, check every file, support config-file overlays, and report stable error codes. Plus the status of every SDK.',
 	alternates: { canonical: '/spec/sdk-requirements/' },
 };
 
@@ -20,7 +21,7 @@ export const metadata = {
 
 # SDK requirements
 
-A docuconf SDK has one job: let an app declare its configuration in the way its ecosystem already does, and add what is missing for a platform contract. There is an SDK for Go, TypeScript, .NET, Python, Ruby, Java, Kotlin, Rust, Swift, Elixir and Gleam.
+A docuconf SDK has one job: let an app declare its configuration in the way its ecosystem already does, and add what is missing for a platform contract. There are <SdkCount /> SDKs today: <SdkList />. Each has a [Get started](/languages/) page.
 
 ## Build on the host library
 
@@ -67,7 +68,7 @@ Every violation found at boot is reported with one of these codes, so platforms 
 
 <h2 id="conformance">Conformance suite</h2>
 
-The shared suite lives in [`conformance/`](https://github.com/docuconf/docuconf-go/tree/main/conformance) in docuconf-go. Cases are written once, in YAML, and expanded into `cases.json`, which every SDK runs in CI through its contract-first mode:
+The shared suite lives in [`conformance/`](https://github.com/Docuconf/docuconf-go/tree/main/conformance) in docuconf-go. Cases are written once, in YAML, and expanded into `cases.json`, which every SDK runs in CI through its contract-first mode:
 
 - **Values cases** start from typed platform values. They are rendered with the meta-schema's `#Render` once per list and duration encoding, so one case checks that every SDK reads `a,b`, `["a","b"]` and `NAME__0`/`NAME__1` the same way, and `1m30s`, `PT90S`, `90` and `00:01:30` as the same duration.
 - **Env cases** give the raw environment the app might see anyway (malformed values, out-of-range numbers, unresolved `vault:` references) with the exact error codes every SDK must report.

@@ -15,12 +15,12 @@ import {
 	VALUE_SOURCES,
 	VAR_TYPES,
 } from './spec-data';
-import { SDK_ROWS } from './sdk-data';
+import { GITHUB_ORG, SDK_ROWS } from './sdk-data';
 
 export const SITE_URL = (process.env.SITE_URL || 'https://docuconf.dev').replace(/\/$/, '');
 export const SITE_NAME = 'docuconf';
-export const GITHUB_ORG_URL = 'https://github.com/docuconf';
-export const SPEC_SOURCE_URL = 'https://github.com/docuconf/docuconf-go/blob/main/spec/SPEC.md';
+export const GITHUB_ORG_URL = GITHUB_ORG;
+export const SPEC_SOURCE_URL = `${GITHUB_ORG}/docuconf-go/blob/main/spec/SPEC.md`;
 export const LICENSE_URL = 'https://opensource.org/license/mit';
 
 /** An absolute URL for a site path such as "/spec/". */
@@ -31,7 +31,7 @@ const SITE_ID = absolute('/#website');
 const SPEC_ID = absolute('/spec/#specification');
 
 /** The SDKs, as listed in sdk-data.ts. */
-export const SDKS = SDK_ROWS.map((r) => ({ language: r.language, repo: r.repo, host: r.host, package: r.package }));
+export const SDKS = SDK_ROWS.map((r) => ({ slug: r.slug, name: r.name, language: r.language, repo: r.repo, host: r.host, package: r.package }));
 
 export function organization() {
 	return {
@@ -60,11 +60,12 @@ export function website() {
 export function sdkSourceCode() {
 	return SDKS.map((s) => ({
 		'@type': 'SoftwareSourceCode',
-		'@id': `${GITHUB_ORG_URL}/${s.repo}#code`,
-		name: `docuconf for ${s.language}`,
+		'@id': `${GITHUB_ORG_URL}/${s.repo}#code${s.repo === 'docuconf-js' ? `-${s.slug}` : ''}`,
+		name: `docuconf for ${s.name}`,
 		codeRepository: `${GITHUB_ORG_URL}/${s.repo}`,
 		programmingLanguage: s.language === '.NET' ? 'C#' : s.language,
-		description: `docuconf SDK for ${s.language}, built on ${s.host}. Package: ${s.package}.`,
+		description: `docuconf SDK for ${s.name}, built on ${s.host}. Package: ${s.package}.`,
+		url: absolute(`/languages/${s.slug}/`),
 		isBasedOn: { '@id': SPEC_ID },
 		publisher: { '@id': ORG_ID },
 		license: LICENSE_URL,
@@ -155,6 +156,7 @@ export function specification() {
 export function pageGraph(opts: { path: string; title: string; description: string; extra?: object[] }) {
 	const crumbs = [{ name: 'docuconf', path: '/' }];
 	if (opts.path.startsWith('/spec/') && opts.path !== '/spec/') crumbs.push({ name: 'Specification', path: '/spec/' });
+	if (opts.path.startsWith('/languages/') && opts.path !== '/languages/') crumbs.push({ name: 'Get started', path: '/languages/' });
 	crumbs.push({ name: opts.title, path: opts.path });
 	return {
 		'@context': 'https://schema.org',

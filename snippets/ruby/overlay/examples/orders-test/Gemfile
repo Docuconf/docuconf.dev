@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+# The orders example's Gemfile, plus minitest for its tests.
+source "https://rubygems.org"
+
+gem "docuconf-anyway", path: "../.."
+
+group :test do
+  gem "minitest", "~> 5.25"
+end

@@ -1,0 +1,15 @@
+...
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The configuration does not satisfy the docuconf contract (2 problems):
+
+    [missing_required] ORDERS_DATABASEURL: is required (orders.database-url)
+    [out_of_range] ORDERS_PORT: is below min 1 (got 0)
+
+Action:
+
+Set or fix the environment variables and files listed above. Codes are defined in the docuconf spec (section 11.2). For local runs, DOCUCONF_FILE_ROOT=./dev reads file inputs from ./dev; docuconf.enabled=false skips the check (for tests and build-time tasks).

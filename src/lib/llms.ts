@@ -1,7 +1,8 @@
 // llms.txt and llms-full.txt (https://llmstxt.org), generated from the same
 // data as the /spec pages.
-import { EXAMPLE_CONFIG, repoPath, SDK_ROWS } from './sdk-data';
-import { absolute, SDKS, SPEC_SOURCE_URL } from './seo';
+import { EXAMPLE_CONFIG, readmeRaw, repoPath, SDK_ROWS, type SdkRow } from './sdk-data';
+import { plain } from './text';
+import { absolute, SPEC_SOURCE_URL } from './seo';
 import {
 	API_VERSION,
 	DURATION_ENCODINGS,
@@ -25,6 +26,19 @@ import {
 
 const SUMMARY = `docuconf is an open-source project for typed configuration contracts between an application and the Kubernetes platform that runs it. Each language SDK extends that language's leading config library and exports a ${KIND} (apiVersion ${API_VERSION}) in CUE. The platform validates the values, files and secrets it will supply against the contract before deploying (docuconf CLI, CUE/Crossplane, or a Helm values schema), and the SDK validates the real environment again at boot.`;
 
+/** The install command a Get started page shows, on one line. */
+export function installCommand(row: SdkRow): string {
+	const c = row.checks.find((c) => c.id === row.guide.install.check);
+	const lines = (c?.show ?? c?.run ?? '').split('\n').filter(Boolean);
+	return lines.join(' && ');
+}
+
+const sdkLine = (r: SdkRow) => {
+	const install = installCommand(r);
+	const files = r.guide.install.files?.length ? ` plus the ${r.guide.install.files.map((f) => f.title).join(' and ')} lines on the page` : '';
+	return `- [docuconf for ${r.name}](${absolute(`/languages/${r.slug}/`)}): on ${r.host}. Install: \`${install}\`${files}. [README](${readmeRaw(r)}), [orders example](${repoPath(r.repo, r.example.path)}). ${plain(r.summary)}`;
+};
+
 export function llmsTxt(): string {
 	return `# docuconf
 
@@ -41,17 +55,22 @@ docuconf covers environment variables (9 types), file inputs (config files, TLS 
 - [Full specification as plain text](${absolute('/llms-full.txt')})
 - [Normative SPEC.md](${SPEC_SOURCE_URL})
 
+## Get started
+
+- [Get started: pick a language](${absolute('/languages/')})
+- [Example apps](${absolute('/examples/')}): the same "orders" service in every SDK, side by side
+
+No SDK is on a package registry yet (all are v0.1 alphas), so each installs from its main branch. Each line: the Get started page (install, declare, boot error, test, export), the install command, the raw README and the example's declaration.
+
+${SDK_ROWS.map(sdkLine).join('\n')}
+
 ## Project
 
 - [Vision](${absolute('/vision/')})
 - [How it works](${absolute('/how-it-works/')})
-- [Languages](${absolute('/languages/')})
 - [Config is not feature flags](${absolute('/feature-flags/')})
 - [Roadmap](${absolute('/roadmap/')})
-
-## SDKs
-
-${SDKS.map((s) => `- [docuconf for ${s.language}](https://github.com/docuconf/${s.repo}): on ${s.host}`).join('\n')}
+- [Get involved](${absolute('/community/')})
 
 ## Optional
 
@@ -147,15 +166,19 @@ ${table(['Code', 'Meaning'], ERROR_CODES.map((e) => [e.code, e.meaning]))}
 ### SDKs
 
 ${table(
-	['Language', 'Package', 'Host library', 'Lists', 'Durations', 'Profiles', 'reload: watch', 'Conformance'],
-	SDK_ROWS.map((r) => [r.language, r.package, r.host, r.lists, r.durations, r.profiles, r.watch, r.conformance]),
+	['SDK', 'Package', 'Host library', 'Lists', 'Durations', 'Profiles', 'reload: watch', 'Conformance'],
+	SDK_ROWS.map((r) => [r.name, r.package, r.host, r.lists, r.durations, r.profiles, r.watch, r.conformance]),
 )}
 
 ### Example apps
 
 Every SDK repository has the same runnable example, an "orders" service (${EXAMPLE_CONFIG.map((v) => v.name).join(', ')}), with its exported contract.cue checked in CI:
 
-${SDK_ROWS.flatMap((r) => r.examples.map((e) => `- ${r.language} (${e.label}): ${repoPath(r.repo, e.path)}`)).join('\n')}
+${SDK_ROWS.map((r) => `- ${r.name} (${r.example.label}): ${repoPath(r.repo, r.example.path)}`).join('\n')}
+
+### Install (until the first release)
+
+${SDK_ROWS.map((r) => `- ${r.name}: \`${installCommand(r)}\`; after the first release: \`${r.guide.install.registry}\`. Guide: ${absolute(`/languages/${r.slug}/`)}`).join('\n')}
 
 ## FAQ
 

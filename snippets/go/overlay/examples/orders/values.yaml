@@ -1,0 +1,4 @@
+# The values a platform proposes for one environment, with three mistakes.
+DATABASE_URL: "postgres://orders:hunter2@db:5432/orders"
+DATABSE_URL: "postgres://orders@db:5432/orders"
+PORT: 70000
