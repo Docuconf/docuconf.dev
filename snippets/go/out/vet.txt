@@ -1,0 +1,3 @@
+DATABASE_URL: is secret, so it must come from a secretKeyRef or an injector, never a literal or another reference
+DATABSE_URL: is not declared in the contract (check the spelling)
+PORT: 70000 is above max 65535

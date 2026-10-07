@@ -126,7 +126,9 @@ function check(row: SdkRow) {
 	const git = arg('--git');
 	if (git) {
 		// A copy of the clone at a ref, so a working tree with other changes is never touched.
-		sdk = mkdtempSync(join(tmpdir(), `snippets-${row.slug}-`));
+		// Named after the repository: some tools (SwiftPM) take a package's identity from its directory.
+		sdk = join(mkdtempSync(join(tmpdir(), `snippets-${row.slug}-`)), row.repo);
+		mkdirSync(sdk);
 		execFileSync('sh', ['-c', `git -C "$0" archive "$1" | tar -x -C "$2"`, git, arg('--ref') ?? 'origin/main', sdk]);
 	}
 	if (!sdk) fail('pass --sdk <checkout> or --git <clone>');
@@ -191,7 +193,7 @@ function check(row: SdkRow) {
 
 	// 4. Files the commands regenerate (contract.cue) still match the copies.
 	compareCopies('after the checks');
-	if (git && !process.argv.includes('--keep')) rmSync(sdk, { recursive: true, force: true });
+	if (git && !process.argv.includes('--keep')) rmSync(dirname(sdk), { recursive: true, force: true });
 	if (problems.length) fail(`${row.slug}: ${problems.length} problem(s):\n\n${problems.join('\n\n')}`);
 	console.log(`snippets: ${row.slug}: ${row.checks.length} checks passed${update ? ' (updated)' : ''}`);
 }

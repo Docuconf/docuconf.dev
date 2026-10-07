@@ -45,9 +45,10 @@ jobs:
         with:
           repository: Docuconf/${{ matrix.repo }}
           ref: main
-          path: sdk
+          # Named after the repository: SwiftPM takes a package's identity from its directory.
+          path: sdk/${{ matrix.repo }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       # The commands run inside the SDK's own toolchain image (ci.image in sdk-data.ts).
-      - run: node scripts/snippets.ts check "${{ matrix.slug }}" --sdk sdk --image "${{ matrix.image }}"
+      - run: node scripts/snippets.ts check "${{ matrix.slug }}" --sdk "sdk/${{ matrix.repo }}" --image "${{ matrix.image }}"

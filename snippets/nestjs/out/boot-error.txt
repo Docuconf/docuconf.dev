@@ -1,0 +1,6 @@
+[Nest] … LOG [NestFactory] Starting Nest application...
+[Nest] … ERROR [ExceptionHandler] DocuconfValidationError: docuconf: 2 configuration problems:
+  - PORT [out_of_range]: must not be less than 1 (got "0")
+  - DATABASE_URL [missing_required]: required, but not set
+    at Object.validate (…)
+...

@@ -1,0 +1,3 @@
+Invalid configuration:
+  [missing_required] ORDERS__DATABASEURL: is required (Orders:DatabaseUrl)
+  [out_of_range] ORDERS__PORT: The field Port must be between 1 and 65535.
