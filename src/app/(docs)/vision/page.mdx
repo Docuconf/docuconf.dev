@@ -1,5 +1,6 @@
 import { JsonLd } from '@/components/spec-tables';
 import { pageGraph } from '@/lib/seo';
+import { SdkCount, SdkList } from '@/components/sdk-roadmap';
 export const metadata = {
 	title: 'Vision',
 	description: 'Why docuconf exists, what it believes, and where it is going.',
@@ -19,7 +20,7 @@ Each variable is a string that some line of code, somewhere, parses. Which varia
 This was tolerable when one team owned one app on one server. It does not hold up in a modern organization:
 
 - **Platform teams run hundreds of services they did not write.** They need to know what each one requires without reading its source.
-- **Organizations are polyglot.** A Rails monolith, TypeScript frontends, .NET services and Go infrastructure all deploy to the same clusters, each with its own config conventions.
+- **Organizations are polyglot.** A Rails monolith, TypeScript frontends, .NET services and Go infrastructure all deploy to the same clusters, each with its own config conventions. {/* content-check: ignore (an example of a polyglot company, not a list of SDKs) */}
 - **Deploys are declarative.** With GitOps and Crossplane, configuration is data in a repository, which means it can be checked before it is applied, if there is something to check it against.
 
 ## What docuconf is
@@ -42,7 +43,7 @@ CUE is the contract language because it was built for exactly this: it combines 
 
 ## Where it is going
 
-The near-term goal is concrete: SDKs for Go, TypeScript, Ruby and .NET, a CLI, and a Crossplane composition function, so a team can go from "add a package" to "bad config is rejected before deploy" in an afternoon.
+The near-term goal is concrete: a team can go from "add a package" to "bad config is rejected before deploy" in an afternoon. Today there are <SdkCount /> SDKs (<SdkList />), all running the same conformance suite, and a CLI that exports, vets and renders contracts. Next come first releases to each package registry and a Crossplane composition function.
 
 Longer term, we want a contract to be as normal a part of a container image as an SBOM:
 

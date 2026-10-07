@@ -1,58 +1,39 @@
 import Link from 'next/link';
 import { Code } from '@/components/code';
+import { LanguagePicker } from '@/components/language-picker';
 import { Tab, Tabs } from '@/components/tabs';
+import { TerminalTabs } from '@/components/terminal';
 import { GITHUB_ORG } from '@/components/site';
 import { JsonLd } from '@/components/spec-tables';
+import { conformanceShort, SDK_ROWS } from '@/lib/sdk-data';
 import { siteGraph } from '@/lib/seo';
+import { command, output, snippetText } from '@/lib/snippets';
 
 export const metadata = { alternates: { canonical: '/' } };
 
-const declarations = {
-	go: `type Config struct {
-    // Primary Postgres connection string.
-    DatabaseURL string \`env:"DATABASE_URL,required" secret:"true"\`
+const GO = SDK_ROWS.find((r) => r.slug === 'go')!;
 
-    // HTTP listen port.
-    Port int \`env:"PORT" envDefault:"8080" min:"1" max:"65535"\`
-}`,
-	ts: `export const env = createEnv({
-  server: {
-    DATABASE_URL: secret(z.url().describe("Primary Postgres connection string")),
-    PORT: z.coerce.number().int().min(1).max(65535).default(8080).describe("HTTP listen port"),
-  },
-  runtimeEnv: process.env,
-});`,
-	ruby: `class BillingConfig < Anyway::Config
-  include Docuconf::Anyway
-  attr_config :database_url, port: 8080
-  required :database_url
-  describe database_url: "Primary Postgres connection string", port: "HTTP listen port"
-  secret :database_url
-  constrain port: {min: 1, max: 65535}
-end`,
-	dotnet: `public sealed class BillingOptions
-{
-    [Required, Secret, Description("Primary Postgres connection string")]
-    public string DatabaseUrl { get; set; } = "";
+// The hero's two terminals, from snippets CI runs against docuconf-go's main branch.
+const values = snippetText('go', { file: 'overlay/examples/orders/values.yaml', lang: 'yaml' })
+	.split('\n')
+	.filter((l) => !l.startsWith('#'))
+	.join('\n');
+const HERO = [
+	{
+		label: 'CI, before merge',
+		caption: 'docuconf vet checks the values a platform proposes against the app\'s contract.',
+		lines: ['$ cat values.yaml', ...values.split('\n'), `$ ${command(GO, 'vet')}`, ...output(GO, 'vet').split('\n')],
+	},
+	{
+		label: 'At boot',
+		caption: 'The Go SDK checks the real environment when the app starts.',
+		lines: [`$ ${command(GO, 'boot-error')}`, ...output(GO, 'boot-error').split('\n')],
+	},
+];
 
-    [Range(1, 65535), Description("HTTP listen port")]
-    public int Port { get; set; } = 8080;
-}`,
-};
-
-const contract = `PORT: {
-	type:        "int"
-	description: "HTTP listen port"
-	default:     8080
-	min:         1
-	max:         65535
-}
-DATABASE_URL: {
-	type:        "url"
-	description: "Primary Postgres connection string"
-	required:    true
-	secret:      true
-}`;
+/** "caarlos0/env, T3 Env, ... and 6 more", from sdk-data.ts. */
+const HOSTS = SDK_ROWS.slice(0, 6).map((r) => r.hostShort);
+const HOSTS_TEXT = `${HOSTS.join(', ')} and ${SDK_ROWS.length - HOSTS.length} more`;
 
 const steps = [
 	{
@@ -61,11 +42,11 @@ const steps = [
 	},
 	{
 		title: 'Export',
-		body: 'The SDK writes contract.cue at build time and publishes it with your image, tied to its digest.',
+		body: 'The SDK writes contract.cue from the same declaration. You commit it, or publish it with your image.',
 	},
 	{
 		title: 'Validate',
-		body: 'Crossplane and CUE check the values for each environment, plus platform policy, before anything renders.',
+		body: 'docuconf vet, the Helm chart or CUE in your pipeline checks the values for each environment, plus platform policy, before anything renders.',
 	},
 	{
 		title: 'Boot',
@@ -80,7 +61,7 @@ const principles = [
 	},
 	{
 		title: 'One contract, any language',
-		body: 'A Rails app and a .NET service produce the same kind of contract, so the platform validates both the same way.',
+		body: `A Rails app and a .NET service produce the same kind of contract, so the platform validates both the same way. ${SDK_ROWS.length} SDKs pass one shared conformance suite.`,
 	},
 	{
 		title: 'Fail before deploy',
@@ -99,47 +80,6 @@ const principles = [
 		body: 'A specification first, with a conformance suite so independently built SDKs provably agree.',
 	},
 ];
-
-const languages = [
-	{ name: 'Go', host: 'caarlos0/env', status: 'In progress' },
-	{ name: 'TypeScript', host: 'T3 Env + Zod, Valibot or ArkType', status: 'Next' },
-	{ name: 'Ruby on Rails', host: 'anyway_config', status: 'Next' },
-	{ name: '.NET', host: 'Options pattern + appsettings', status: 'Next' },
-	{ name: 'Python', host: 'pydantic-settings', status: 'Planned' },
-	{ name: 'Java', host: 'Spring Boot configuration properties', status: 'Planned' },
-];
-
-function Terminal() {
-	return (
-		<div
-			role="img"
-			aria-label="A deploy rejected by docuconf: PORT is above its maximum, a required variable is missing, and a secret was given as plain text."
-			className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[var(--terminal-bg)] font-mono text-[0.78rem] leading-relaxed text-[var(--terminal-fg)] shadow-2xl shadow-black/30"
-		>
-			<div className="flex gap-1.5 border-b border-white/10 px-4 py-3">
-				<span className="size-2.5 rounded-full bg-white/15" />
-				<span className="size-2.5 rounded-full bg-white/15" />
-				<span className="size-2.5 rounded-full bg-white/15" />
-			</div>
-			<pre className="overflow-x-auto px-5 py-4">
-				<span className="text-white">$ kubectl get app billing-api</span>
-				{'\n'}
-				<span className="text-[var(--terminal-muted)]">CONDITION      STATUS</span>
-				{'\n'}ContractValid  <span className="text-[var(--terminal-danger)]">False</span>
-				{'\n\n'}
-				<span className="text-[var(--terminal-danger)]">✗</span> PORT: 70000 is above max 65535
-				{'\n'}
-				<span className="text-[var(--terminal-danger)]">✗</span> ALLOWED_ORIGINS: required
-				{'\n'}
-				<span className="text-[var(--terminal-danger)]">✗</span> DATABASE_URL: plain-text secret
-				{'\n  '}
-				<span className="text-[var(--terminal-muted)]">(value redacted)</span>
-				{'\n\n'}
-				<span className="text-[var(--terminal-ok)]">Nothing was deployed.</span>
-			</pre>
-		</div>
-	);
-}
 
 function Section({
 	eyebrow,
@@ -181,15 +121,15 @@ export default function Home() {
 							Your environment variables are an API. Give them a contract.
 						</h1>
 						<p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-							docuconf turns the config your app already declares, in Go, TypeScript, Ruby or .NET, into a CUE
-							contract that your Kubernetes platform checks before anything deploys.
+							docuconf turns the config your app already declares, with the library you already use ({HOSTS_TEXT}),
+							into a CUE contract that your Kubernetes platform checks before anything deploys.
 						</p>
 						<div className="mt-9 flex flex-wrap items-center gap-3">
 							<Link
-								href="/vision/"
+								href="/languages/"
 								className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
 							>
-								Read the vision →
+								Get started →
 							</Link>
 							<Link
 								href="/how-it-works/"
@@ -198,8 +138,12 @@ export default function Home() {
 								How it works
 							</Link>
 						</div>
+						<div className="mt-8">
+							<p className="mb-2 text-sm text-muted">{SDK_ROWS.length} SDKs, each a v0.1 alpha:</p>
+							<LanguagePicker compact />
+						</div>
 					</div>
-					<Terminal />
+					<TerminalTabs tabs={HERO} />
 				</div>
 			</section>
 
@@ -249,44 +193,39 @@ export default function Home() {
 
 			{/* Code */}
 			<Section eyebrow="From your code to the platform" title="Keep your library. Get a contract.">
-				<div className="grid gap-6 lg:grid-cols-2">
-					<div className="min-w-0">
-						<p className="mb-1 text-sm font-medium text-muted">1 · Your declaration, as you write it today</p>
-						<Tabs>
-							<Tab label="Go">
-								<Code lang="go" code={declarations.go} />
-							</Tab>
-							<Tab label="TypeScript">
-								<Code lang="ts" code={declarations.ts} />
-							</Tab>
-							<Tab label="Ruby">
-								<Code lang="ruby" code={declarations.ruby} />
-							</Tab>
-							<Tab label=".NET">
-								<Code lang="csharp" code={declarations.dotnet} />
-							</Tab>
-						</Tabs>
-					</div>
-					<div className="min-w-0">
-						<p className="mb-1 text-sm font-medium text-muted">2 · The contract your platform checks</p>
-						<div className="my-6">
-							<div className="flex border-b border-border">
-								<span className="-mb-px border-b-2 border-accent px-3 py-2 font-mono text-sm font-medium">
-									contract.cue
-								</span>
-							</div>
-							<div className="pt-4">
-								<Code lang="cue" code={contract} />
-							</div>
-						</div>
-					</div>
-				</div>
-				<p className="mt-6 text-sm text-muted">
-					The SDK APIs shown are planned and may change while the specification is a draft.{' '}
-					<Link href="/languages/" className="text-accent underline">
-						See each language in full.
-					</Link>
+				<p className="max-w-3xl text-muted">
+					The same service, <strong className="text-fg">orders</strong>, declared with each SDK, and the contract it
+					exports. Pick your language; every snippet is checked against that SDK&apos;s main branch in CI.
 				</p>
+				<Tabs group="lang" linkable label="Language">
+					{SDK_ROWS.map((r) => (
+						<Tab key={r.slug} value={r.slug} label={r.name}>
+							<div className="grid gap-6 lg:grid-cols-2">
+								<div className="min-w-0">
+									<p className="mb-1 text-sm font-medium text-muted">1 · Your declaration, as you write it today</p>
+									<Code
+										lang={r.guide.declare.files![0].lang}
+										title={r.guide.declare.files![0].title}
+										code={snippetText(r.slug, r.guide.declare.files![0])}
+									/>
+								</div>
+								<div className="min-w-0">
+									<p className="mb-1 text-sm font-medium text-muted">2 · The contract your platform checks</p>
+									<Code
+										lang="cue"
+										title="contract.cue"
+										code={snippetText(r.slug, r.guide.export.files!.find((f) => f.lang === 'cue')!)}
+									/>
+								</div>
+							</div>
+							<p className="mt-2 text-sm">
+								<Link href={`/languages/${r.slug}/`} className="font-semibold text-accent underline">
+									Get started with {r.name} →
+								</Link>
+							</p>
+						</Tab>
+					))}
+				</Tabs>
 			</Section>
 
 			{/* Principles */}
@@ -303,28 +242,53 @@ export default function Home() {
 
 			{/* Languages */}
 			<Section eyebrow="Languages" title="Built for platform teams running many languages.">
-				<div className="overflow-hidden rounded-2xl border border-border">
+				<div
+					role="region"
+					aria-label="SDKs (scrolls sideways)"
+					tabIndex={0}
+					className="overflow-x-auto rounded-2xl border border-border"
+				>
 					<table className="w-full text-left text-sm">
+						<caption className="sr-only">Every docuconf SDK, the library it builds on, and its status</caption>
 						<thead className="bg-card text-muted">
 							<tr>
-								<th className="px-5 py-3 font-medium">Language</th>
-								<th className="px-5 py-3 font-medium">Builds on</th>
-								<th className="px-5 py-3 font-medium">Status</th>
+								<th scope="col" className="px-5 py-3 font-medium">
+									SDK
+								</th>
+								<th scope="col" className="px-5 py-3 font-medium">
+									Builds on
+								</th>
+								<th scope="col" className="px-5 py-3 font-medium">
+									Status
+								</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-border">
-							{languages.map((l) => (
-								<tr key={l.name}>
-									<td className="px-5 py-3 font-medium">{l.name}</td>
-									<td className="px-5 py-3 text-muted">{l.host}</td>
-									<td className="px-5 py-3">
-										<span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted">{l.status}</span>
+							{SDK_ROWS.map((r) => (
+								<tr key={r.slug}>
+									<th scope="row" className="px-5 py-3 font-medium">
+										<Link href={`/languages/${r.slug}/`} className="text-accent hover:underline">
+											{r.name}
+										</Link>
+									</th>
+									<td className="px-5 py-3 text-muted">{r.host}</td>
+									<td className="whitespace-nowrap px-5 py-3">
+										<span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-muted">
+											v0.1 alpha · conformance {conformanceShort(r)}
+										</span>
 									</td>
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
+				<p className="mt-4 text-sm text-muted">
+					None is on a package registry yet; each Get started page installs from git. Conformance is the shared
+					suite of 112 cases every SDK runs.{' '}
+					<Link href="/spec/sdk-requirements/" className="text-accent underline">
+						Compare what each SDK supports.
+					</Link>
+				</p>
 			</Section>
 
 			{/* Flags + CTA */}
@@ -344,8 +308,8 @@ export default function Home() {
 					<p className="text-sm font-semibold text-accent">Early days</p>
 					<h2 className="mt-2 text-2xl font-bold tracking-tight">Help shape the spec.</h2>
 					<p className="mt-3 text-muted">
-						The contract specification is a draft and the SDKs are being built now. One good comment can still change
-						the design.
+						The contract specification is a draft and every SDK is a v0.1 alpha. One good comment can still change the
+						design.
 					</p>
 					<div className="mt-5 flex flex-wrap gap-3 text-sm font-semibold">
 						<Link href="/spec/" className="rounded-full bg-accent px-5 py-2.5 text-accent-fg">

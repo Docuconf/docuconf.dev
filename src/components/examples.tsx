@@ -3,7 +3,12 @@ import { EXAMPLE_CONFIG, repoPath, SDK_ROWS } from '@/lib/sdk-data';
 
 export function ExampleConfigTable() {
 	return (
-		<div className="not-prose my-6 overflow-x-auto rounded-xl border border-border">
+		<div
+			role="region"
+			aria-label="The example configuration (scrolls sideways)"
+			tabIndex={0}
+			className="not-prose my-6 overflow-x-auto rounded-xl border border-border"
+		>
 			<table className="w-full border-collapse text-left text-sm">
 				<caption className="sr-only">The configuration every example app declares</caption>
 				<thead className="bg-card">
@@ -34,22 +39,22 @@ export function ExampleConfigTable() {
 export function ExampleList() {
 	return (
 		<ul className="not-prose my-6 grid gap-3 sm:grid-cols-2">
-			{SDK_ROWS.flatMap((r) =>
-				r.examples.map((e) => (
-					<li key={`${r.repo}/${e.path}`}>
-						<a
-							href={repoPath(r.repo, e.path)}
-							className="block rounded-xl border border-border bg-card px-4 py-3 hover:border-accent"
-						>
-							<span className="font-semibold">{r.language}</span>
-							<span className="text-muted"> · {e.label}</span>
-							<span className="mt-1 block font-mono text-xs text-muted">
-								{r.repo}/{e.path}
-							</span>
-						</a>
-					</li>
-				)),
-			)}
+			{SDK_ROWS.map((r) => (
+				<li key={r.slug}>
+					<a
+						href={repoPath(r.repo, r.example.path)}
+						className="block rounded-xl border border-border bg-card px-4 py-3 hover:border-accent"
+					>
+						<span className="font-semibold">{r.name}</span>
+						<span className="text-muted"> · {r.example.label}</span>
+						<span className="mt-1 block font-mono text-xs text-muted">
+							{r.repo}/{r.example.path}
+						</span>
+					</a>
+				</li>
+			))}
 		</ul>
 	);
 }
+
+export { ExampleCompare, PrefixedNames } from './example-compare';

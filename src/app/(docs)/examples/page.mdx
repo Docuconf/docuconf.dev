@@ -1,11 +1,11 @@
 import { JsonLd } from '@/components/spec-tables';
-import { ExampleConfigTable, ExampleList } from '@/components/examples';
+import { ExampleCompare, ExampleConfigTable, ExampleList, PrefixedNames } from '@/components/examples';
 import { pageGraph } from '@/lib/seo';
 
 export const metadata = {
 	title: 'Example apps',
 	description:
-		'The same small service, "orders", written with every docuconf SDK: one configuration, declared in each language’s own library, exported as the same kind of contract and validated the same way at startup.',
+		'The same small service, "orders", written with every docuconf SDK and compared side by side: one configuration, declared in each language’s own library, exported as the same kind of contract and checked the same way at startup.',
 	alternates: { canonical: '/examples/' },
 };
 
@@ -20,16 +20,22 @@ Each example:
 - declares its configuration with the SDK, in the host library's own style;
 - serves `GET /healthz` and `GET /config`, which shows the typed values with the secret redacted;
 - commits the `contract.cue` it exports, and CI checks that it is up to date and passes `cue vet`;
-- fails at startup with every problem listed, each with an error code, when the configuration is wrong. Each README shows the real output.
+- fails at startup with every problem listed, each with an error code, when the configuration is wrong.
 
 ## The configuration
 
 <ExampleConfigTable />
 
-Environment variable names follow each host's conventions; .NET, for example, reads `ORDERS__PORT` from an `Orders` options section. Each README lists the exact names.
+Environment variable names follow each host's conventions. Most examples read `PORT`; <PrefixedNames />, from an `Orders` options section. Each contract lists the exact names.
+
+## Side by side
+
+Pick two SDKs and compare the declaration, the contract it exports, or what the app prints when `PORT=0` and `DATABASE_URL` is missing. The code is copied from each repository's `main` branch, and CI fails when a copy goes stale.
+
+<ExampleCompare />
 
 ## The examples
 
 <ExampleList />
 
-To deploy one, the platform validates its `contract.cue` before the pod starts, with [`docuconf vet` and `docuconf render`](https://github.com/docuconf/docuconf-go#export-and-validate) or the [Helm library chart](https://github.com/docuconf/docuconf-go/tree/main/helm). See [How it works](/how-it-works/).
+To deploy one, the platform validates its `contract.cue` before the pod starts, with [`docuconf vet` and `docuconf render`](https://github.com/Docuconf/docuconf-go#export-and-validate) or the [Helm library chart](https://github.com/Docuconf/docuconf-go/tree/main/helm). See [How it works](/how-it-works/).
