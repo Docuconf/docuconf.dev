@@ -1,23 +1,54 @@
 import Link from 'next/link';
+import { GITHUB_ORG } from '@/lib/sdk-data';
+import { MobileMenu } from './mobile-menu';
+import { Search } from './search';
 
-export const GITHUB_ORG = 'https://github.com/docuconf';
-export const REPO = 'https://github.com/docuconf/docuconf-go';
+export { GITHUB_ORG };
+export const REPO = `${GITHUB_ORG}/docuconf-go`;
 export const SPEC_URL = `${REPO}/blob/main/spec/SPEC.md`;
 export const PLAN_URL = `${REPO}/blob/main/docs/PLAN.md`;
 export const EDGE_CASES_URL = `${REPO}/blob/main/docs/EDGE_CASES.md`;
 
-export const DOC_PAGES = [
-	{ href: '/vision/', label: 'Vision' },
+export type NavPage = { href: string; label: string };
+
+/** The site's pages, grouped as the menus show them. The sitemap lists them too. */
+export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
+	{
+		title: 'Get started',
+		pages: [
+			{ href: '/languages/', label: 'Pick a language' },
+			{ href: '/examples/', label: 'Example apps' },
+		],
+	},
+	{
+		title: 'Specification',
+		pages: [
+			{ href: '/spec/', label: 'Overview' },
+			{ href: '/spec/inputs/', label: 'Inputs' },
+			{ href: '/spec/outputs/', label: 'Outputs' },
+			{ href: '/spec/sdk-requirements/', label: 'SDK requirements' },
+		],
+	},
+	{
+		title: 'Project',
+		pages: [
+			{ href: '/vision/', label: 'Vision' },
+			{ href: '/how-it-works/', label: 'How it works' },
+			{ href: '/feature-flags/', label: 'Config is not feature flags' },
+			{ href: '/roadmap/', label: 'Roadmap' },
+			{ href: '/community/', label: 'Get involved' },
+		],
+	},
+];
+
+export const DOC_PAGES: NavPage[] = NAV_GROUPS.flatMap((g) => g.pages);
+
+const HEADER_NAV: NavPage[] = [
+	{ href: '/languages/', label: 'Get started' },
 	{ href: '/how-it-works/', label: 'How it works' },
 	{ href: '/spec/', label: 'Specification' },
-	{ href: '/spec/inputs/', label: 'Spec: inputs' },
-	{ href: '/spec/outputs/', label: 'Spec: outputs' },
-	{ href: '/spec/sdk-requirements/', label: 'Spec: SDK requirements' },
-	{ href: '/languages/', label: 'Languages' },
-	{ href: '/examples/', label: 'Example apps' },
-	{ href: '/feature-flags/', label: 'Config is not feature flags' },
+	{ href: '/examples/', label: 'Examples' },
 	{ href: '/roadmap/', label: 'Roadmap' },
-	{ href: '/community/', label: 'Get involved' },
 ];
 
 export function Logo({ className = 'size-7' }: { className?: string }) {
@@ -45,46 +76,32 @@ export function GitHubIcon({ className = 'size-5' }: { className?: string }) {
 }
 
 export function SiteHeader() {
-	const nav = DOC_PAGES.filter((p) => ['/vision/', '/how-it-works/', '/spec/', '/languages/', '/examples/', '/roadmap/'].includes(p.href));
 	return (
-		<header className="sticky top-0 z-30 border-b border-border bg-bg/85 backdrop-blur">
-			<div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+		<header className="sticky top-0 z-30 border-b border-border bg-bg/85 backdrop-blur" data-pagefind-ignore>
+			<div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:gap-6">
 				<Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
 					<Logo />
 					<span className="text-lg">docuconf</span>
 				</Link>
-				<nav aria-label="Main" className="ml-auto hidden items-center gap-6 text-sm text-muted md:flex">
-					{nav.map((p) => (
+				<nav aria-label="Main" className="ml-auto hidden items-center gap-5 text-sm text-muted lg:flex">
+					{HEADER_NAV.map((p) => (
 						<Link key={p.href} href={p.href} className="transition-colors hover:text-fg">
 							{p.label}
 						</Link>
 					))}
 				</nav>
-				<a
-					href={GITHUB_ORG}
-					className="ml-auto flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg md:ml-0"
-				>
-					<GitHubIcon className="size-4" />
-					<span>GitHub</span>
-				</a>
-				<details className="relative md:hidden">
-					<summary className="flex cursor-pointer list-none items-center rounded-md p-1.5 text-muted hover:text-fg [&::-webkit-details-marker]:hidden">
-						<span className="sr-only">Menu</span>
-						<svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-							<path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-						</svg>
-					</summary>
-					<nav
-						aria-label="Mobile"
-						className="absolute right-0 mt-2 w-60 rounded-xl border border-border bg-bg p-2 shadow-xl"
+				<div className="ml-auto flex items-center gap-2 lg:ml-0">
+					<Search />
+					<a
+						href={GITHUB_ORG}
+						className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg"
 					>
-						{DOC_PAGES.map((p) => (
-							<Link key={p.href} href={p.href} className="block rounded-lg px-3 py-2 text-sm hover:bg-card">
-								{p.label}
-							</Link>
-						))}
-					</nav>
-				</details>
+						<GitHubIcon className="size-4" />
+						<span className="hidden sm:inline">GitHub</span>
+						<span className="sr-only sm:hidden">docuconf on GitHub</span>
+					</a>
+					<MobileMenu groups={NAV_GROUPS} />
+				</div>
 			</div>
 		</header>
 	);
@@ -92,7 +109,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
 	return (
-		<footer className="mt-24 border-t border-border">
+		<footer className="mt-24 border-t border-border" data-pagefind-ignore>
 			<div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
 				<div className="flex items-center gap-2.5 text-fg">
 					<Logo className="size-5" />
@@ -100,6 +117,7 @@ export function SiteFooter() {
 					<span className="text-muted">· an open-source project</span>
 				</div>
 				<div className="flex flex-wrap gap-x-6 gap-y-2">
+					<Link href="/languages/" className="hover:text-fg">Get started</Link>
 					<Link href="/spec/" className="hover:text-fg">Specification</Link>
 					<a href={SPEC_URL} className="hover:text-fg">SPEC.md</a>
 					<a href={`${process.env.BASE_PATH ?? ''}/llms.txt`} className="hover:text-fg">llms.txt</a>
