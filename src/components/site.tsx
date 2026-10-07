@@ -14,6 +14,7 @@ export const DOC_PAGES = [
 	{ href: '/spec/outputs/', label: 'Spec: outputs' },
 	{ href: '/spec/sdk-requirements/', label: 'Spec: SDK requirements' },
 	{ href: '/languages/', label: 'Languages' },
+	{ href: '/examples/', label: 'Example apps' },
 	{ href: '/feature-flags/', label: 'Config is not feature flags' },
 	{ href: '/roadmap/', label: 'Roadmap' },
 	{ href: '/community/', label: 'Get involved' },
@@ -44,7 +45,7 @@ export function GitHubIcon({ className = 'size-5' }: { className?: string }) {
 }
 
 export function SiteHeader() {
-	const nav = DOC_PAGES.filter((p) => ['/vision/', '/how-it-works/', '/spec/', '/languages/', '/roadmap/'].includes(p.href));
+	const nav = DOC_PAGES.filter((p) => ['/vision/', '/how-it-works/', '/spec/', '/languages/', '/examples/', '/roadmap/'].includes(p.href));
 	return (
 		<header className="sticky top-0 z-30 border-b border-border bg-bg/85 backdrop-blur">
 			<div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">

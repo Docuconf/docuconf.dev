@@ -18,6 +18,8 @@ export type SdkRow = {
 	export: string;
 	/** Result of the shared conformance suite (112 cases), and the capability tags it skips. */
 	conformance: string;
+	/** The runnable "orders" example app(s): label and path in the repo. */
+	examples: { label: string; path: string }[];
 	caveats: string[];
 };
 
@@ -37,6 +39,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'docuconf export -pkg -type',
 		conformance: '112 of 112',
+		examples: [{ label: 'net/http', path: 'examples/orders' }],
 		caveats: ['caarlos0/env parses int as 32-bit, so that range is exported.', 'No TOML config files, no JKS keystores.'],
 	},
 	{
@@ -54,6 +57,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'npx docuconf export src/env.ts',
 		conformance: '109 of 112 (skips int64, json-schema)',
+		examples: [{ label: 'T3 Env', path: 'examples/orders-t3' }, { label: 'NestJS', path: 'examples/orders-nestjs' }],
 		caveats: [
 			'ESM (.mjs) and CommonJS both supported.',
 			'int is limited to the safe-integer range.',
@@ -75,6 +79,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: 'appsettings.{Environment}.json',
 		export: 'dotnet app.dll docuconf export',
 		conformance: '110 of 112 (skips json-schema)',
+		examples: [{ label: 'ASP.NET Core', path: 'examples/orders' }],
 		caveats: [
 			'Platform-mounted appsettings overlays load through AddDocuconfOverlays<T>().',
 			'Export runs at runtime; a build-time source generator is planned.',
@@ -95,6 +100,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'docuconf export mod:Settings',
 		conformance: '112 of 112 (json-schema with the jsonschema extra)',
+		examples: [{ label: 'http.server', path: 'examples/orders' }],
 		caveats: ['No JKS keystores.', 'No profiles.'],
 	},
 	{
@@ -112,6 +118,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: 'Rails YAML (RAILS_ENV)',
 		export: 'rails docuconf:export',
 		conformance: '112 of 112',
+		examples: [{ label: 'Rack', path: 'examples/orders' }],
 		caveats: ['Rails credentials must be excluded explicitly.', 'TOML needs the tomlrb gem.'],
 	},
 	{
@@ -129,6 +136,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: 'application-{profile}.yml',
 		export: 'annotation processor at compile time',
 		conformance: '112 of 112',
+		examples: [{ label: 'Spring Boot', path: 'examples/orders' }],
 		caveats: ['Several active profiles at once (a,b) are not supported yet.'],
 	},
 	{
@@ -146,6 +154,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'Docuconf.exportCue()',
 		conformance: '112 of 112',
+		examples: [{ label: 'JDK HttpServer', path: 'examples/orders' }],
 		caveats: ['JVM target only so far; the core module is Kotlin Multiplatform-ready.', 'No reload: watch.'],
 	},
 	{
@@ -163,6 +172,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: 'figment profiles',
 		export: 'docuconf::export()',
 		conformance: '112 of 112',
+		examples: [{ label: 'std::net', path: 'examples/orders' }],
 		caveats: ['No reload: watch.', 'No JKS keystores.'],
 	},
 	{
@@ -180,6 +190,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'app docuconf-export',
 		conformance: '110 of 112 (skips json-schema)',
+		examples: [{ label: 'POSIX sockets', path: 'Examples/Orders' }],
 		caveats: ['Built and tested on Linux; macOS and iOS builds are untested.', 'No TOML, no profiles.'],
 	},
 	{
@@ -197,6 +208,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'mix docuconf.export',
 		conformance: '112 of 112',
+		examples: [{ label: ':httpd', path: 'examples/orders' }],
 		caveats: ['Watched files reload only while the app supervises Docuconf.Watcher.'],
 	},
 	{
@@ -214,6 +226,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'docuconf.write_contract()',
 		conformance: '110 of 112 on Erlang, 109 on JavaScript (skips json-schema; int64 on JavaScript)',
+		examples: [{ label: 'wisp', path: 'examples/orders' }],
 		caveats: [
 			'Keystores are not opened with their password yet.',
 			'On the JavaScript target, integers beyond 2^53 lose precision.',
@@ -221,3 +234,16 @@ export const SDK_ROWS: SdkRow[] = [
 		],
 	},
 ];
+
+/** The configuration every example app declares, so the same service can be compared across languages. */
+export const EXAMPLE_CONFIG: { name: string; type: string; rules: string }[] = [
+	{ name: 'PORT', type: 'int', rules: '1–65535, default 8080' },
+	{ name: 'LOG_LEVEL', type: 'enum', rules: 'debug, info, warn, error; default info' },
+	{ name: 'DATABASE_URL', type: 'url', rules: 'secret, required, scheme postgres' },
+	{ name: 'ALLOWED_ORIGINS', type: 'list of strings', rules: 'at least 1 item; default http://localhost:3000' },
+	{ name: 'REQUEST_TIMEOUT', type: 'duration', rules: '1s–5m, default 30s' },
+	{ name: 'WORKER_COUNT', type: 'int', rules: '1–64, default 4' },
+];
+
+/** GitHub URL of a path in an SDK repository's main branch. */
+export const repoPath = (repo: string, path: string) => `https://github.com/docuconf/${repo}/tree/main/${path}`;

@@ -1,0 +1,35 @@
+import { JsonLd } from '@/components/spec-tables';
+import { ExampleConfigTable, ExampleList } from '@/components/examples';
+import { pageGraph } from '@/lib/seo';
+
+export const metadata = {
+	title: 'Example apps',
+	description:
+		'The same small service, "orders", written with every docuconf SDK: one configuration, declared in each language’s own library, exported as the same kind of contract and validated the same way at startup.',
+	alternates: { canonical: '/examples/' },
+};
+
+<JsonLd data={pageGraph({ path: '/examples/', title: metadata.title, description: metadata.description })} />
+
+# Example apps
+
+Every SDK repository has a runnable example: the same small HTTP service, **orders**, built with that language's usual tools. Comparing them shows how each SDK fits its host library while producing the same kind of contract.
+
+Each example:
+
+- declares its configuration with the SDK, in the host library's own style;
+- serves `GET /healthz` and `GET /config`, which shows the typed values with the secret redacted;
+- commits the `contract.cue` it exports, and CI checks that it is up to date and passes `cue vet`;
+- fails at startup with every problem listed, each with an error code, when the configuration is wrong. Each README shows the real output.
+
+## The configuration
+
+<ExampleConfigTable />
+
+Environment variable names follow each host's conventions; .NET, for example, reads `ORDERS__PORT` from an `Orders` options section. Each README lists the exact names.
+
+## The examples
+
+<ExampleList />
+
+To deploy one, the platform validates its `contract.cue` before the pod starts, with [`docuconf vet` and `docuconf render`](https://github.com/docuconf/docuconf-go#export-and-validate) or the [Helm library chart](https://github.com/docuconf/docuconf-go/tree/main/helm). See [How it works](/how-it-works/).
