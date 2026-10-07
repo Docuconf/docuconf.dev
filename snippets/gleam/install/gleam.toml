@@ -1,0 +1,7 @@
+name = "app"
+version = "0.1.0"
+
+[dependencies]
+gleam_stdlib = ">= 1.0.0 and < 2.0.0"
+# Until the first release, from the main branch:
+docuconf = { git = "https://github.com/Docuconf/docuconf-gleam", ref = "main" }

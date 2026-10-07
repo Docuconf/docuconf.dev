@@ -1,0 +1,13 @@
+# Compiles the orders example's main.rs as a library, so the site's tests can sit next to its Config.
+[package]
+name = "orders-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+docuconf = { path = "../../docuconf" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

@@ -1,0 +1,53 @@
+name: snippets
+
+# Compiles and runs every code snippet the site shows against each SDK's main branch: the install commands, the
+# example declarations (which must match the SDK repository byte for byte), the tests, the boot errors and the
+# contract exports. The SDKs are listed in src/lib/sdk-data.ts; scripts/snippets.ts runs each one's checks.
+#
+# When an SDK changes, this fails until the site catches up. To refresh a language locally:
+#   node scripts/snippets.ts check <slug> --git ../docuconf-<lang> --ref origin/main --update
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # SDKs change without touching this repository.
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      sdks: ${{ steps.sdks.outputs.sdks }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: sdks
+        run: echo "sdks=$(node scripts/snippets.ts matrix)" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: matrix
+    name: ${{ matrix.slug }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.matrix.outputs.sdks) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Docuconf/${{ matrix.repo }}
+          ref: main
+          path: sdk
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The commands run inside the SDK's own toolchain image (ci.image in sdk-data.ts).
+      - run: node scripts/snippets.ts check "${{ matrix.slug }}" --sdk sdk --image "${{ matrix.image }}"
