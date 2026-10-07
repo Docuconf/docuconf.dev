@@ -20,6 +20,6 @@ fn defaults() {
 fn rejects_bad_values() {
     let err = load(&[("PORT", "70000")]).unwrap_err();
     let found: Vec<_> = err.violations().iter().map(|v| (v.input.as_str(), v.code)).collect();
-    assert!(found.contains(&("PORT", Code::InvalidType)) || found.contains(&("PORT", Code::OutOfRange)), "{found:?}");
+    assert!(found.contains(&("PORT", Code::OutOfRange)), "{found:?}");
     assert!(found.contains(&("DATABASE_URL", Code::MissingRequired)), "{found:?}");
 }
