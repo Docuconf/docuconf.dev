@@ -1,0 +1,41 @@
+name: release-please
+
+# Keeps one release PR open on main that bumps the version from the
+# Conventional Commit messages and updates CHANGELOG.md. Merging that PR tags
+# the release and creates the GitHub release.
+# The site deploys continuously, so the version is only a record. See
+# CONTRIBUTING.md.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # tags and GitHub releases
+  pull-requests: write # the release PR
+
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    env:
+      USE_APP: ${{ secrets.RELEASE_APP_ID != '' && secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+    steps:
+      # With a GitHub App token, the release PR runs CI. Without one,
+      # GITHUB_TOKEN is used, whose PRs trigger no workflows.
+      - name: GitHub App token
+        id: app
+        if: env.USE_APP == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
