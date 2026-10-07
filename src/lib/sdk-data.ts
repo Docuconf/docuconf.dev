@@ -226,7 +226,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'docuconf.write_contract()',
 		conformance: '110 of 112 on Erlang, 109 on JavaScript (skips json-schema; int64 on JavaScript)',
-		examples: [{ label: 'Gleam', path: 'examples/orders' }],
+		examples: [{ label: 'wisp', path: 'examples/orders' }],
 		caveats: [
 			'Keystores are not opened with their password yet.',
 			'On the JavaScript target, integers beyond 2^53 lose precision.',
