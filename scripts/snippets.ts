@@ -17,7 +17,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SDK_ROWS, type Check, type SdkRow } from '../src/lib/sdk-data.ts';
 
@@ -106,11 +106,13 @@ function hostRunner(sdk: string): Runner {
 
 function dockerRunner(sdk: string, image: string): Runner {
 	const name = `snippets-${process.pid}`;
-	execFileSync('docker', ['run', '-d', '--rm', '--name', name, '-v', `${sdk}:/sdk`, '--entrypoint', 'sleep', image, 'infinity'], { stdio: 'inherit' });
+	// Mounted under its own name (docuconf-swift, not /sdk): SwiftPM takes a package's identity from its directory.
+	const mount = `/w/${basename(sdk)}`;
+	execFileSync('docker', ['run', '-d', '--rm', '--name', name, '-v', `${sdk}:${mount}`, '--entrypoint', 'sleep', image, 'infinity'], { stdio: 'inherit' });
 	return {
 		run(check, cwd) {
 			const env = Object.entries(check.env ?? {}).flatMap(([k, v]) => ['-e', `${k}=${v}`]);
-			const r = spawnSync('docker', ['exec', ...env, '-w', join('/sdk', cwd), name, 'sh', '-c', `PATH="/sdk/.bin:$PATH"; ${check.run}`], { encoding: 'utf8', maxBuffer: 64 << 20 });
+			const r = spawnSync('docker', ['exec', ...env, '-w', join(mount, cwd), name, 'sh', '-c', `PATH="${mount}/.bin:$PATH"; ${check.run}`], { encoding: 'utf8', maxBuffer: 64 << 20 });
 			return { code: r.status ?? 1, output: `${r.stdout}${r.stderr}` };
 		},
 		stop() {
@@ -139,6 +141,11 @@ function check(row: SdkRow) {
 	if (image && row.ci.setup) {
 		const r = runner.run({ id: 'setup', cwd: '.', run: row.ci.setup }, '.');
 		if (r.code !== 0) fail(`${row.slug}: ci.setup failed:\n${r.output}`);
+	}
+	if (image) {
+		// The checkout belongs to the runner's user, not the container's root, so git (and tools that ask it,
+		// such as Go's VCS stamping) would refuse it as "dubious ownership".
+		runner.run({ id: 'safe-directory', cwd: '.', run: "command -v git >/dev/null && git config --global --add safe.directory '*' || true" }, '.');
 	}
 
 	// 1. The site's copies of SDK files are the SDK's files.

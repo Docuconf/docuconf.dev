@@ -1,7 +1,4 @@
 ...
-** (Docuconf.ValidationError) docuconf: 2 configuration problems:
+docuconf: 2 configuration problems:
   - DATABASE_URL [missing_required]: required, but not set
   - PORT [out_of_range]: "0" is below min 1
-    (docuconf 0.1.0) lib/docuconf.ex:236: Docuconf.load!/2
-    …/config/runtime.exs:5: (file)
-...

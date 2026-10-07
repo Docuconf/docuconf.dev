@@ -891,7 +891,7 @@ export const SDK_ROWS: SdkRow[] = [
 			},
 			run: 'DATABASE_URL=postgres://orders:pw@localhost:5432/orders mix run --no-halt',
 			error: {
-				text: 'With `PORT=0` and no `DATABASE_URL`, the boot stops with every problem and its error code, and the process exits 1. The report also goes to `/dev/termination-log`.',
+				text: 'With `PORT=0` and no `DATABASE_URL`, `load!` prints every problem with its error code, without a stack trace, and the process exits 1. The report also goes to `/dev/termination-log`.',
 				check: 'boot-error',
 			},
 			test: {
