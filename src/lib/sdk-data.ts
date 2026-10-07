@@ -100,7 +100,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'docuconf export mod:Settings',
 		conformance: '112 of 112 (json-schema with the jsonschema extra)',
-		examples: [{ label: 'pydantic-settings', path: 'examples/orders' }],
+		examples: [{ label: 'http.server', path: 'examples/orders' }],
 		caveats: ['No JKS keystores.', 'No profiles.'],
 	},
 	{
@@ -154,7 +154,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'Docuconf.exportCue()',
 		conformance: '112 of 112',
-		examples: [{ label: 'Hoplite', path: 'examples/orders' }],
+		examples: [{ label: 'JDK HttpServer', path: 'examples/orders' }],
 		caveats: ['JVM target only so far; the core module is Kotlin Multiplatform-ready.', 'No reload: watch.'],
 	},
 	{
@@ -172,7 +172,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: 'figment profiles',
 		export: 'docuconf::export()',
 		conformance: '112 of 112',
-		examples: [{ label: 'figment', path: 'examples/orders' }],
+		examples: [{ label: 'std::net', path: 'examples/orders' }],
 		caveats: ['No reload: watch.', 'No JKS keystores.'],
 	},
 	{
@@ -190,7 +190,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'app docuconf-export',
 		conformance: '110 of 112 (skips json-schema)',
-		examples: [{ label: 'swift-configuration', path: 'examples/orders' }],
+		examples: [{ label: 'POSIX sockets', path: 'Examples/Orders' }],
 		caveats: ['Built and tested on Linux; macOS and iOS builds are untested.', 'No TOML, no profiles.'],
 	},
 	{
@@ -208,7 +208,7 @@ export const SDK_ROWS: SdkRow[] = [
 		profiles: '—',
 		export: 'mix docuconf.export',
 		conformance: '112 of 112',
-		examples: [{ label: 'Elixir', path: 'examples/orders' }],
+		examples: [{ label: ':httpd', path: 'examples/orders' }],
 		caveats: ['Watched files reload only while the app supervises Docuconf.Watcher.'],
 	},
 	{
