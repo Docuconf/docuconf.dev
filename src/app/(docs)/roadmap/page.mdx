@@ -16,23 +16,34 @@ export const metadata = {
 - [x] CUE meta-schema with validation, policy, rendering and a test suite
 - [x] Wire encodings for each language's list and duration formats
 - [x] Config files and profiles (`appsettings`, Spring profiles, Rails YAML)
+- [x] File inputs: config files, TLS, CA bundles, keystores, text and binary files
+- [x] Injected values and files (Bank-Vaults, `op run`, Vault Agent)
+- [x] Config-file overlays, such as a mounted `appsettings.Production.json`
+- [x] Language-neutral conformance suite for variables
+- [ ] Conformance cases for file inputs, profiles and overlays
 - [ ] Settle the open questions in the specification
-- [ ] Language-neutral conformance suite
 
-## Next: Go and the platform
+## Next: the platform
 
-- [ ] Go SDK rebuilt on caarlos0/env
-- [ ] `docuconf` CLI: `export`, `vet`, `render`, `diff`, `docs`, `push`, `pull`
+- [x] `docuconf` CLI: `export`, `vet`, `render`, `helm`
+- [x] Helm library chart and generated `values.schema.json`
+- [ ] `docuconf diff`, `docs`, `push` and `pull`
 - [ ] Crossplane composition function, with readable conditions
-- [ ] An end-to-end demo: one deploy succeeds; one with a bad value is rejected
+- [ ] An end-to-end demo on a local cluster: one deploy succeeds; one with a bad value is rejected
 
-## Then: more languages
+## Languages
 
-- [ ] TypeScript on T3 Env
-- [ ] Ruby on anyway_config
-- [ ] .NET on the Options pattern
-- [ ] Python on pydantic-settings
-- [ ] Java on Spring Boot
+- [x] Go on caarlos0/env
+- [x] TypeScript on T3 Env, with a NestJS adapter
+- [x] .NET on the Options pattern
+- [x] Python on pydantic-settings
+- [x] Ruby on anyway_config
+- [x] Java on Spring Boot
+- [x] Kotlin on Hoplite
+- [x] Rust on figment
+- [x] Swift on swift-configuration
+- [x] Elixir and Gleam
+- [ ] First releases to each package registry
 
 ## Later
 

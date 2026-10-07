@@ -1,4 +1,3 @@
-import { Callout } from '@/components/callout';
 import {
 	EncodingTables,
 	FileFieldsTable,
@@ -80,9 +79,7 @@ LOG_LEVEL: warn                               # an ordinary literal
 
 <InjectorsTable />
 
-<Callout title="Specified, not built">
-The `injected` sources are part of this revision of the specification; the CUE meta-schema and `docuconf vet` do not accept them yet. SDKs already validate injected values, because they read the process environment at startup.
-</Callout>
+SDKs validate injected values like any other, because they read the process environment at startup, after injection. If a secret still holds a reference (`vault:`, `op://`, `ref+`), the injector did not run, and the SDK fails with `invalid_type`, naming the variable and the reference scheme but never the value.
 
 ## Files
 
@@ -141,9 +138,7 @@ overlays: platform: {
 
 <OverlayHostsTable />
 
-<Callout title="Specified, not built">
-Overlays are part of this revision of the specification. The .NET SDK reads its baked-in `appsettings*.json` files today; reading a declared overlay, and rendering one with `docuconf render`, come next.
-</Callout>
+`docuconf render` and the Helm library chart write the overlay's ConfigMap, volume and mount. The SDKs for hosts that layer files load it in the right place; see the [SDK table](/spec/sdk-requirements/#sdks).
 
 <h2 id="encodings">Wire encodings</h2>
 

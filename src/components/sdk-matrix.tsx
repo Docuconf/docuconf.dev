@@ -12,6 +12,7 @@ const COLUMNS: { key: keyof (typeof SDK_ROWS)[number]; label: string }[] = [
 	{ key: 'watch', label: 'reload: watch' },
 	{ key: 'profiles', label: 'Profiles' },
 	{ key: 'export', label: 'Export' },
+	{ key: 'conformance', label: 'Conformance' },
 ];
 
 export function SdkMatrix() {
