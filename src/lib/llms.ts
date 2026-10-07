@@ -1,6 +1,6 @@
 // llms.txt and llms-full.txt (https://llmstxt.org), generated from the same
 // data as the /spec pages.
-import { SDK_ROWS } from './sdk-data';
+import { EXAMPLE_CONFIG, repoPath, SDK_ROWS } from './sdk-data';
 import { absolute, SDKS, SPEC_SOURCE_URL } from './seo';
 import {
 	API_VERSION,
@@ -150,6 +150,12 @@ ${table(
 	['Language', 'Package', 'Host library', 'Lists', 'Durations', 'Profiles', 'reload: watch', 'Conformance'],
 	SDK_ROWS.map((r) => [r.language, r.package, r.host, r.lists, r.durations, r.profiles, r.watch, r.conformance]),
 )}
+
+### Example apps
+
+Every SDK repository has the same runnable example, an "orders" service (${EXAMPLE_CONFIG.map((v) => v.name).join(', ')}), with its exported contract.cue checked in CI:
+
+${SDK_ROWS.flatMap((r) => r.examples.map((e) => `- ${r.language} (${e.label}): ${repoPath(r.repo, e.path)}`)).join('\n')}
 
 ## FAQ
 

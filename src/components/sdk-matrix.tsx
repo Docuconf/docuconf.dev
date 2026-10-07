@@ -1,5 +1,5 @@
 // The SDK status table on /spec/sdk-requirements/, from src/lib/sdk-data.ts.
-import { SDK_ROWS } from '@/lib/sdk-data';
+import { repoPath, SDK_ROWS } from '@/lib/sdk-data';
 
 const COLUMNS: { key: keyof (typeof SDK_ROWS)[number]; label: string }[] = [
 	{ key: 'host', label: 'Host library' },
@@ -30,6 +30,9 @@ export function SdkMatrix() {
 								{c.label}
 							</th>
 						))}
+						<th scope="col" className="whitespace-nowrap border-b border-border px-3 py-2 font-semibold">
+							Example
+						</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -45,6 +48,16 @@ export function SdkMatrix() {
 									{r[c.key] as string}
 								</td>
 							))}
+							<td className="min-w-32 px-3 py-2 leading-relaxed">
+								{r.examples.map((e, i) => (
+									<span key={e.path}>
+										{i > 0 && ', '}
+										<a href={repoPath(r.repo, e.path)} className="text-accent hover:underline">
+											{e.label}
+										</a>
+									</span>
+								))}
+							</td>
 						</tr>
 					))}
 				</tbody>
