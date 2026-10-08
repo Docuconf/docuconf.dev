@@ -9,7 +9,7 @@ on:
 permissions:
   contents: read
 
-# Deploys queue one at a time and are never cancelled. Pull-request builds get
+# Deploys run one at a time and a running deploy is never cancelled. PR builds get
 # their own group, so a PR push cannot replace a pending production deploy.
 concurrency:
   group: pages-${{ github.event_name == 'pull_request' && github.ref || 'deploy' }}
