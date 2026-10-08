@@ -162,8 +162,7 @@ An API key or signing key can be rotated without downtime if, for a while, both 
 ```cue
 WEBHOOK_KEYS: {
 	type:          "list"
-	description:   "Keys a webhook caller may sign with: the current key, plus the previous one during a rotation"
-	required:      true
+	description:   "Keys that verify the signature on incoming payment webhooks"
 	secret:        true
 	items:         "string"
 	encoding:      "csv"
@@ -171,11 +170,11 @@ WEBHOOK_KEYS: {
 	minItems:      1
 	maxItems:      2
 	itemMinLength: 32
-	itemMaxLength: 128
+	itemMaxLength: 256
 }
 ```
 
-The platform supplies it like any secret, as one `secretKeyRef`, and the Secret holds the keys joined by commas. Because the value is a reference, the item checks run at boot: an empty item, a key under 32 characters or a third key fails with `out_of_range` or `too_many_items`. The app accepts a request signed with any key in the list. To rotate:
+The platform supplies it like any secret, as one `secretKeyRef`, and the Secret holds the keys joined by commas. Because the value is a reference, the item checks run at boot: an empty item, a key under 32 or over 256 characters, or a third key fails with `out_of_range` or `too_many_items`. The app accepts a request signed with any key in the list. To rotate:
 
 1. Add the new key as the second item (`old,new`) and roll out. The app now accepts both.
 2. Switch the callers to the new key.
@@ -190,14 +189,14 @@ API_KEY: {
 	required:    true
 	secret:      true
 	minLength:   32
-	maxLength:   128
+	maxLength:   256
 }
 API_KEY_PREVIOUS: {
 	type:        "string"
 	description: "The previous key, still accepted while callers switch to API_KEY"
 	secret:      true
 	minLength:   32
-	maxLength:   128
+	maxLength:   256
 }
 ```
 
