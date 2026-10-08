@@ -1112,7 +1112,7 @@ export const SDK_ROWS: SdkRow[] = [
 		},
 		ci: {
 			image: 'ubuntu:24.04',
-			setup: 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq build-essential cmake ninja-build git ca-certificates libcli11-dev nlohmann-json3-dev libre2-dev libssl-dev libyaml-cpp-dev libtomlplusplus-dev libgtest-dev >/dev/null',
+			setup: 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq build-essential cmake ninja-build git ca-certificates libcli11-dev nlohmann-json3-dev libre2-dev libssl-dev libyaml-cpp-dev libtomlplusplus-dev libgtest-dev python3 >/dev/null',
 		},
 		checks: [
 			{ id: 'install', cwd: '@install', run: 'cmake -S . -B build && cmake --build build && ./build/app', show: 'cmake -S . -B build && cmake --build build' },
