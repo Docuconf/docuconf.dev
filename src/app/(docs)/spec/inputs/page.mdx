@@ -48,6 +48,15 @@ The type set is closed in v1alpha1: a new type needs a spec change, because ever
 - `json` variables and `config` files carry a JSON Schema **generated from the app's own type**, so the platform checks structured values against the type the app deserializes into.
 - An **empty string** is a value for `string`. For every other type it means *unset*.
 
+<h3 id="length-limits">Length limits</h3>
+
+- **Lengths count characters**, meaning Unicode code points, never bytes or UTF-16 code units: `日本` is 2 characters, and `ZÜ01` fits an `itemMaxLength` of 4. CUE's `strings.MaxRunes` and JSON Schema's `maxLength` count the same way, so the platform and every SDK agree.
+- `minLength` and `maxLength` bound a `string`, and `maxLength` also a `url` (the URL as it is) or a `json` value.
+- `maxLength` on a `json` value bounds its **wire string**: before deploy, the compact JSON the renderer writes; at boot, the raw value the app receives, whitespace included, before it is parsed. The Helm values schema cannot express it, so `docuconf vet` and the SDK check it.
+- `itemMinLength` and `itemMaxLength` bound each item of a `string` list, after the list is split, so a `csv` separator never counts. They are not allowed on an `int` list, as `itemMin` and `itemMax` are not allowed on a `string` list.
+- A value outside its limits is `out_of_range` at boot. A too-long secret is reported by its length, never its value.
+- An app that stores values in fixed-width byte fields, such as a COBOL `PIC X(n)`, should declare a limit that leaves room for multi-byte characters, or restrict values to ASCII with a `pattern` such as `^[ -~]*$`.
+
 ### Fields on every variable
 
 <VarFieldsTable />
@@ -80,6 +89,35 @@ LOG_LEVEL: warn                               # an ordinary literal
 <InjectorsTable />
 
 SDKs validate injected values like any other, because they read the process environment at startup, after injection. If a secret still holds a reference (`vault:`, `op://`, `ref+`), the injector did not run, and the SDK fails with `invalid_type`, naming the variable and the reference scheme but never the value.
+
+<h3 id="injector-annotations">Enabling the injector</h3>
+
+Most injectors are switched on by annotations or labels on the pod. An `injected` source, for a variable or a file, may carry them as `podAnnotations` and `podLabels`, maps of strings. The values document may also have its own `podAnnotations` and `podLabels`, beside the variables, for settings every injected input shares, such as the Vault role. The contract does not change: which injector runs is a fact about the cluster.
+
+- **Placeholders** let an annotation that names one input be written once, beside it: `{input}` is the variable's or file's name, and for a file `{path}` is its path, `{dir}` the directory it occupies and `{file}` its file name. Nothing else is expanded, so a Vault Agent template's `{{ .Data }}` stays as it is. A placeholder the source does not define (`{path}` on a variable, any placeholder in the shared maps) is an `undefinedPlaceholder` error.
+- **Rendering.** `docuconf render` merges the shared maps and every injected input into two maps, `podAnnotations` and `podLabels`, for the **pod template's** metadata: webhooks see pods, not Deployments. In Helm, the library chart's `docuconf.podAnnotations` and `docuconf.podLabels` helpers return the same maps. Keys must be Kubernetes qualified names and label values valid label values, checked after expansion.
+- **Conflicts.** The same key with the same value from several inputs is fine. The same key with different values is a `conflictingPodAnnotation` or `conflictingPodLabel` error naming the key and both sources, in `docuconf vet`, in the render and in the Helm helpers.
+- **Not secret.** Anyone who can read the pod can read its annotations, so they hold references and settings (a Vault path, a role, a template), never secret material.
+
+The Vault Agent injector writing a secret config file `db-creds`, declared at `/vault/secrets/db.json`:
+
+```yaml
+# values.yaml
+podAnnotations:                      # shared: one agent per pod, one role
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/role: ledger
+# files.yaml
+db-creds:
+  injected:
+    provider: vault-agent
+    podAnnotations:
+      vault.hashicorp.com/agent-inject-secret-{input}: database/creds/ledger
+      vault.hashicorp.com/agent-inject-template-{input}: '{{- with secret "database/creds/ledger" -}}{{ .Data | toJSON }}{{- end }}'
+      vault.hashicorp.com/secret-volume-path-{input}: "{dir}"
+      vault.hashicorp.com/agent-inject-file-{input}: "{file}"
+```
+
+renders the two shared annotations plus `agent-inject-secret-db-creds`, `agent-inject-template-db-creds`, `secret-volume-path-db-creds: /vault/secrets` and `agent-inject-file-db-creds: db.json`, so the agent writes the file exactly at the declared path. Values are strings: write `"true"`, not `true`. See [SPEC.md §4.5.2](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md#452-enabling-the-injector) for Bank-Vaults, the OpenTelemetry operator and the edge cases.
 
 ## Files
 

@@ -18,7 +18,8 @@ public sealed class OrdersOptions
     public string LogLevel { get; set; } = "info";
 
     // [Secret]: the platform must supply it from a Kubernetes Secret, and docuconf never prints it.
-    [Required, Secret, UrlSchemes("postgres")]
+    // [MaxLength] bounds the URL in characters; a longer one fails startup with out_of_range.
+    [Required, Secret, UrlSchemes("postgres"), MaxLength(2048)]
     [Description("Postgres connection string for the orders database")]
     public string DatabaseUrl { get; set; } = "";
 
@@ -32,7 +33,20 @@ public sealed class OrdersOptions
     [Description("Time allowed to handle one request")]
     public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
+    // An XML doc comment works instead of [Description]: the <summary> is the description, and the <remarks> are the
+    // details, longer docs for docuconf docs (the project sets GenerateDocumentationFile).
+
+    /// <summary>Background workers that process new orders.</summary>
+    /// <remarks>
+    /// <para>
+    /// Each worker holds one connection from the pool of <see cref="DatabaseUrl"/>, so keep this below the database's
+    /// connection limit.
+    /// </para>
+    /// <list type="bullet">
+    /// <item><description>Raise it when the order queue backs up.</description></item>
+    /// <item><description>Lower it when the database is the bottleneck.</description></item>
+    /// </list>
+    /// </remarks>
     [Range(1, 64)]
-    [Description("Background workers that process new orders")]
     public int WorkerCount { get; set; } = 4;
 }

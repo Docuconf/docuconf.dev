@@ -16,7 +16,7 @@ class OrdersConfigTest {
     fun defaults() {
         val config = load("DATABASE_URL" to "postgres://orders@db/orders")
         assertEquals(8080, config.port)
-        assertEquals(4, config.worker.count)
+        assertEquals(4, config.workerCount)
     }
 
     @Test

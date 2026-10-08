@@ -41,7 +41,7 @@ node scripts/snippets.ts check python --git ../docuconf-python --ref origin/main
 node scripts/snippets.ts check python --git ../docuconf-python --ref origin/main --update
 ```
 
-Locally, the commands use the toolchains on your `PATH`; `SNIPPETS_SHELL` can name a wrapper that runs them
+`--git` copies the clone with `git archive`, which leaves out paths marked `export-ignore`: docuconf-php's examples are, so check `laravel` and `symfony` with `--sdk` on a worktree of that clone instead (`--sdk` runs in place). Locally, the commands use the toolchains on your `PATH`; `SNIPPETS_SHELL` can name a wrapper that runs them
 elsewhere (it is called with the directory and the command).
 
 ### Adding a language

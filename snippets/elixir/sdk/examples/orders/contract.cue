@@ -31,6 +31,7 @@ contract.#Contract & {
 			required: true
 			secret: true
 			schemes: ["postgres"]
+			maxLength: 2048
 		}
 		LOG_LEVEL: {
 			type: "enum"
@@ -48,6 +49,7 @@ contract.#Contract & {
 		REQUEST_TIMEOUT: {
 			type: "duration"
 			description: "Time limit for one request"
+			details: "Raise it when clients upload large order batches. Keep it below the load\nbalancer's idle timeout, or the client sees a reset rather than a `504`."
 			encoding: "go"
 			min: "1s"
 			max: "5m"

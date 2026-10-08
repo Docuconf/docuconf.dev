@@ -30,6 +30,7 @@ contract.#Contract & {
 			required:    true
 			secret:      true
 			schemes: ["postgres"]
+			maxLength: 2048
 		}
 		LOG_LEVEL: {
 			type:        "enum"
@@ -55,6 +56,7 @@ contract.#Contract & {
 		WORKER_COUNT: {
 			type:        "int"
 			description: "Number of background order workers"
+			details:     "Each worker holds one database connection, so keep this below the\npool size of `DATABASE_URL`'s server.\n\n- Raise it when the order queue backs up.\n- Lower it when the database is the bottleneck."
 			min:         1
 			max:         64
 			default:     4

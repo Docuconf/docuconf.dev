@@ -1,0 +1,77 @@
+import { DocsExample, DocsSourcesTable } from '@/components/generated-docs';
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
+
+export const metadata = {
+	title: 'Generated docs: CONFIG.md for developers, CONFIG.agents.md for agents',
+	description:
+		'How docuconf documents an app’s configuration: each input’s description and optional details come from the app’s own doc comments, the contract carries them, and docuconf docs renders CONFIG.md for developers and CONFIG.agents.md for coding and ops agents.',
+	alternates: { canonical: '/spec/generated-docs/' },
+};
+
+<JsonLd data={pageGraph({ path: '/spec/generated-docs/', title: 'docuconf generated docs', description: metadata.description })} />
+
+# Generated docs
+
+Every input in a contract has a **description**, and may have **details**. The app's developers write both where they already document a setting, in a doc comment beside the code that reads it, and the SDK exports them into `contract.cue`. One generator, `docuconf docs` in the CLI, turns the contract into documentation for every language: `CONFIG.md` for developers and `CONFIG.agents.md` for AI agents. SDKs export the text; they do not render it.
+
+<h2 id="description-and-details">Description and details</h2>
+
+| Field | Rule |
+|---|---|
+| `description` | Required on every variable and file input. Plain text, at least 5 characters: what the input is, in one sentence or phrase. Renderers keep it on one line. |
+| `details` | Optional. CommonMark: why the input exists and when to change it. Not blank, and at most 4000 characters, counted in Unicode code points. Used only in generated docs, never at runtime. |
+
+Each SDK takes both from the language's natural doc location: usually the first paragraph of the doc comment is the description and the rest is the details. Language-specific doc syntax (Javadoc tags, XML doc elements, Go doc links, Doxygen commands) is converted to CommonMark or dropped. Export fails when a description is missing or too short, or when details are blank or too long. In the Go example, `WORKER_COUNT` is documented like this:
+
+<DocsExample />
+
+In the generated docs, details keep their Markdown, with one change: their headings are demoted to nest under the input's own heading, so they cannot break the document's outline.
+
+<h2 id="pipeline">The pipeline</h2>
+
+```text
+contract.cue | contract.json ──build──▶ docs model (docs.json) ──render──▶ CONFIG.md          (developers)
+                                                               └─render──▶ CONFIG.agents.md   (AI agents)
+```
+
+1. **Contract.** The app's SDK exports `contract.cue`, with each input's description and details.
+2. **Docs model.** The CLI unifies the contract with the meta-schema, so that defaults such as `required: false` and a list's `encoding` are explicit, and builds the docs model: a versioned JSON document (`kind: ConfigDocs`, `apiVersion: docs.docuconf.dev/v1alpha1`) that holds every fact a renderer shows, already phrased. Each input's type label, wire format, values-file form, constraints, allowed sources and possible boot errors are in it, and every model is checked against `#DocsModel`. A secret input never has a default, an example or a profile value in the model, whatever the contract held.
+3. **Render.** A renderer reads only the model, so a website, an MCP server or a Backstage plugin can render the same facts in the same words. The output is deterministic: the same model always gives the same bytes.
+
+- **`CONFIG.md`** is the reference for developers: a table of contents by group, then a section per input with its description, a table (type, required, secret, default, constraints, wire format, values-file form, config key, path, sources, boot errors), its schema, examples and details; then profiles and overlays when the contract has them, what each source means, and each boot error's meaning and fix.
+- **`CONFIG.agents.md`** is for AI agents: coding agents working in the app's repository, and agents that set deployment values. It starts with hard rules: never put a secret value in code, a `.env` file, a values file, a ConfigMap or an annotation; use each input's wire format; validate with `docuconf vet` or `docuconf check` before proposing a change; never invent an input the contract lacks. Then how to use the config in code, one `key: value` block per input, and the boot errors. It can be included in an `AGENTS.md` or served as an `llms.txt`-style file.
+
+See them for the Go orders example: [`CONFIG.md`](https://github.com/Docuconf/docuconf-go/blob/main/examples/orders/CONFIG.md) and [`CONFIG.agents.md`](https://github.com/Docuconf/docuconf-go/blob/main/examples/orders/CONFIG.agents.md).
+
+<h2 id="command">The command</h2>
+
+```text
+docuconf docs <contract.cue | contract.json | docs.json> [--format model|markdown|agents] [-o file | --check file]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--format markdown` | The reference for developers, such as `CONFIG.md`. The default. |
+| `--format agents` | The rules and per-input facts for AI agents, such as `CONFIG.agents.md`. |
+| `--format model` | The docs model itself, such as `docs.json`. |
+| `-o file` | Write to the file instead of standard output. |
+| `--check file` | Write nothing: exit 0 when the file is what would be generated, otherwise exit 1 with a diff. Cannot be combined with `-o`. |
+| `-contract file` | The contract, if not given as the argument. |
+
+The input is a contract, in CUE or as JSON, or a docs model, recognised by its `apiVersion`. Commit the docs next to `contract.cue` and keep them current in CI:
+
+```sh
+docuconf docs contract.cue -o CONFIG.md
+docuconf docs contract.cue --format agents -o CONFIG.agents.md
+docuconf docs contract.cue --check CONFIG.md
+docuconf docs contract.cue --format agents --check CONFIG.agents.md
+```
+
+<h2 id="sdks">Where each SDK takes them from</h2>
+
+From each SDK's README:
+
+<DocsSourcesTable />
+
+The normative text is [SPEC.md §14](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md#14-generated-docs).

@@ -45,7 +45,7 @@ export function StatusBadge({ status }: { status: Status }) {
 	);
 }
 
-function Table({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
+export function Table({ head, rows, caption }: { head: string[]; rows: ReactNode[][]; caption?: string }) {
 	return (
 		<div
 			role="region"

@@ -18,7 +18,9 @@ export const metadata = {
 - [x] Wire encodings for each language's list and duration formats
 - [x] Config files and profiles (`appsettings`, Spring profiles, Rails YAML)
 - [x] File inputs: config files, TLS, CA bundles, keystores, text and binary files
-- [x] Injected values and files (Bank-Vaults, `op run`, Vault Agent)
+- [x] Injected values and files (Bank-Vaults, `op run`, Vault Agent), with the pod annotations and labels that enable each injector
+- [x] Length limits counted in characters: `maxLength` on `url` and `json` values, `itemMinLength` and `itemMaxLength` on string lists
+- [x] Generated docs: `description` and `details` on every input, and a versioned docs model
 - [x] Config-file overlays, such as a mounted `appsettings.Production.json`
 - [x] Language-neutral conformance suite for variables
 - [ ] Conformance cases for file inputs, profiles and overlays
@@ -27,8 +29,10 @@ export const metadata = {
 ## Next: the platform
 
 - [x] `docuconf` CLI: `export`, `vet`, `render`, `helm`
+- [x] `docuconf docs`: `CONFIG.md` for developers and `CONFIG.agents.md` for coding and ops agents
+- [x] `docuconf check` and `docuconf exec`: boot checks for programs in a language without an SDK
 - [x] Helm library chart and generated `values.schema.json`
-- [ ] `docuconf diff`, `docs`, `push` and `pull`
+- [ ] `docuconf diff`, `push` and `pull`
 - [ ] Crossplane composition function, with readable conditions
 - [ ] An end-to-end demo on a local cluster: one deploy succeeds; one with a bad value is rejected
 

@@ -51,6 +51,7 @@ docuconf covers environment variables (9 types), file inputs (config files, TLS 
 - [Core specification](${absolute('/spec/')}): overview, the three checks, FAQ
 - [Inputs](${absolute('/spec/inputs/')}): variable types, value sources, injection, file types and sources, overlays, wire encodings, profiles
 - [Outputs](${absolute('/spec/outputs/')}): every generation target and its status
+- [Generated docs](${absolute('/spec/generated-docs/')}): description and details, the docs model, \`docuconf docs\`, CONFIG.md for developers and CONFIG.agents.md for agents, and where each SDK takes the text from
 - [SDK requirements](${absolute('/spec/sdk-requirements/')}): what every language SDK must support, error codes, SDK status
 - [Full specification as plain text](${absolute('/llms-full.txt')})
 - [Normative SPEC.md](${SPEC_SOURCE_URL})
@@ -148,6 +149,12 @@ ${table(
 	['Output', 'Artifact', 'Produced by', 'Consumed by', 'Status', 'Notes'],
 	OUTPUTS.map((o) => [o.name, o.artifact, o.producedBy, o.consumedBy, STATUS_LABEL[o.status], o.notes]),
 )}
+
+## Generated docs
+
+Every input has a description (required, plain text, at least 5 characters) and may have details (optional CommonMark, at most 4000 Unicode code points, never read at runtime). SDKs export both from the app's doc comments into the contract. \`docuconf docs <contract.cue | contract.json | docs.json> [--format model|markdown|agents] [-o file | --check file]\` builds a docs model (docs.json, kind ConfigDocs, apiVersion docs.docuconf.dev/v1alpha1) from the contract and renders it: CONFIG.md for developers (\`--format markdown\`, the default) and CONFIG.agents.md for coding and ops agents (\`--format agents\`). \`--check\` exits 1 with a diff when a committed file is out of date. Details: ${absolute('/spec/generated-docs/')}
+
+${table(['SDK', 'description', 'details'], SDK_ROWS.map((r) => [r.name, plain(r.docs.description), plain(r.docs.details)]))}
 
 ## SDK requirements
 

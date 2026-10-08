@@ -13,12 +13,12 @@ export const metadata = {
 
 # Example apps
 
-Every SDK repository has a runnable example: the same small HTTP service, **orders**, built with that language's usual tools. Comparing them shows how each SDK fits its host library while producing the same kind of contract.
+Every SDK repository has a runnable example: the same small service, **orders**, built with that language's usual tools. Most are HTTP services; the COBOL one is a batch job, run as a Kubernetes CronJob. Comparing them shows how each SDK fits its host library while producing the same kind of contract.
 
 Each example:
 
 - declares its configuration with the SDK, in the host library's own style;
-- serves `GET /healthz` and `GET /config`, which shows the typed values with the secret redacted;
+- shows its typed values with the secret redacted: the HTTP services on `GET /config`, beside `GET /healthz`, and the batch job in its output;
 - commits the `contract.cue` it exports, and CI checks that it is up to date and passes `cue vet`;
 - fails at startup with every problem listed, each with an error code, when the configuration is wrong.
 
@@ -26,7 +26,7 @@ Each example:
 
 <ExampleConfigTable />
 
-Environment variable names follow each host's conventions. Most examples read `PORT`; <PrefixedNames />, from an `Orders` options section. Each contract lists the exact names.
+Environment variable names follow each host's conventions. Most examples read `PORT`; <PrefixedNames />, from an `Orders` options section. The Laravel example reads `ORDERS_LOG_LEVEL`, because Laravel itself reads `LOG_LEVEL`. Each contract lists the exact names.
 
 ## Side by side
 

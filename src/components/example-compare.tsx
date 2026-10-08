@@ -1,12 +1,12 @@
 // The orders example in every SDK, side by side, on /examples/. The code comes from snippets/<slug>/, which CI
 // keeps identical to each SDK repository's examples and runs against its main branch.
 import { codeToHtml } from 'shiki';
-import { SHIKI_THEMES } from './code';
+import { SHIKI_THEMES, trimLines } from './code';
 import { CompareView, type CompareSdk } from './compare-view';
 import { SDK_ROWS, type SdkRow } from '@/lib/sdk-data';
 import { snippetText, transcript } from '@/lib/snippets';
 
-const html = (code: string, lang: string) => codeToHtml(code.trim(), { lang, themes: SHIKI_THEMES });
+const html = (code: string, lang: string) => codeToHtml(trimLines(code), { lang, themes: SHIKI_THEMES });
 
 const contractFile = (r: SdkRow) => r.guide.export.files!.find((f) => f.lang === 'cue')!;
 
