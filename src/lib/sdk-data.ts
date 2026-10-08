@@ -1199,7 +1199,7 @@ export const SDK_ROWS: SdkRow[] = [
 			{
 				id: 'install',
 				cwd: '@install',
-				run: 'composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php && composer require -q --no-interaction docuconf/docuconf:dev-main && php check.php',
+				run: 'composer config -g use-github-api false && composer config -g github-protocols https && composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php && composer require -q --no-interaction docuconf/docuconf:dev-main && php check.php',
 				show: 'composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php\ncomposer require docuconf/docuconf:dev-main',
 			},
 			// The example has no test dependencies; add PHPUnit for the site's test.
@@ -1279,7 +1279,7 @@ export const SDK_ROWS: SdkRow[] = [
 			{
 				id: 'install',
 				cwd: '@install',
-				run: 'composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php && composer require -q --no-interaction docuconf/docuconf:dev-main && php check.php',
+				run: 'composer config -g use-github-api false && composer config -g github-protocols https && composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php && composer require -q --no-interaction docuconf/docuconf:dev-main && php check.php',
 				show: 'composer config repositories.docuconf vcs https://github.com/Docuconf/docuconf-php\ncomposer require docuconf/docuconf:dev-main',
 			},
 			// The example has no test dependencies; add PHPUnit for the site's test.
