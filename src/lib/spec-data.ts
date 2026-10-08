@@ -608,7 +608,7 @@ export const ERROR_CODES: { code: string; meaning: string }[] = [
 export const SPEC_FAQ: { q: string; a: string }[] = [
 	{
 		q: 'What is a docuconf configuration contract?',
-		a: `A ${KIND} (apiVersion ${API_VERSION}) is a CUE document that an application exports from its own config declaration. It lists every environment variable and file input the app reads, with its type, constraints, whether it is required or secret, and how the app parses it. The Kubernetes platform validates what it will supply against the contract before deploying, and the SDK validates the real environment again at boot.`,
+		a: `A ${KIND} (apiVersion ${API_VERSION}) is a document, in CUE (contract.cue) or as JSON, that an application exports from its own config declaration. It lists every environment variable and file input the app reads, with its type, constraints, whether it is required or secret, and how the app parses it. The Kubernetes platform validates what it will supply against the contract before deploying, and the SDK validates the real environment again at boot.`,
 	},
 	{
 		q: 'What input types can a docuconf contract describe?',
@@ -629,6 +629,10 @@ export const SPEC_FAQ: { q: string; a: string }[] = [
 	{
 		q: 'How does docuconf handle secrets?',
 		a: 'A secret variable must be supplied as a secretKeyRef and a secret file from a Secret, cert-manager Certificate or CSI volume — never a literal or ConfigMap. The platform checks the reference; the SDK checks the content at boot. No tool ever prints a secret value.',
+	},
+	{
+		q: 'How do rotated secrets reach the app?',
+		a: 'docuconf delivers and checks secrets; Vault, External Secrets, cert-manager and the CSI driver store, issue and rotate them. Environment variables, including injected ones, are read when the process starts, so a rotated value arrives with the next restart or redeploy, which the platform owns. A file secret declares reload: watch (the app rereads it) or reload: restart (the platform rolls the pods), and is projected with items, never subPath, so updates reach it. Leased Vault credentials belong in a file written by Vault Agent or the CSI driver, with reload: watch. For an API key with an overlap, a verifying app declares a secret list of one or two keys (csv, minItems 1, maxItems 2, with item length limits) and accepts any of them: add the new key and roll out, switch the callers, then remove the old key and roll out. See Secret rotation on the Inputs page.',
 	},
 	{
 		q: 'Does docuconf work with Bank-Vaults, Vault Agent or other secret injectors?',

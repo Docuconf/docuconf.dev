@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { Code } from '@/components/code';
 import { LanguagePicker } from '@/components/language-picker';
+import { OutputViewer } from '@/components/output-viewer';
 import { Tab, Tabs } from '@/components/tabs';
 import { TerminalTabs } from '@/components/terminal';
 import { GITHUB_ORG } from '@/components/site';
 import { JsonLd } from '@/components/spec-tables';
 import { CONFORMANCE_CASES, conformanceShort, SDK_ROWS } from '@/lib/sdk-data';
+import { OUTPUT_TABS } from '@/lib/outputs';
 import { siteGraph } from '@/lib/seo';
 import { command, output, snippetText } from '@/lib/snippets';
 
@@ -42,7 +44,7 @@ const steps = [
 	},
 	{
 		title: 'Export',
-		body: 'The SDK writes contract.cue from the same declaration. You commit it, or publish it with your image.',
+		body: 'The SDK exports a contract (contract.cue, or JSON) from the same declaration. From it, docuconf generates the Helm values schema, the pod config and the docs.',
 	},
 	{
 		title: 'Validate',
@@ -122,7 +124,9 @@ export default function Home() {
 						</h1>
 						<p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
 							docuconf turns the config your app already declares, with the library you already use ({HOSTS_TEXT}),
-							into a CUE contract that your Kubernetes platform checks before anything deploys.
+							into a contract (<code className="font-mono text-fg">contract.cue</code>, or JSON) that your Kubernetes
+							platform checks before anything deploys. From it, docuconf generates the Helm values schema, the pod config
+							and the docs.
 						</p>
 						<div className="mt-9 flex flex-wrap items-center gap-3">
 							<Link
@@ -194,8 +198,9 @@ export default function Home() {
 			{/* Code */}
 			<Section eyebrow="From your code to the platform" title="Keep your library. Get a contract.">
 				<p className="max-w-3xl text-muted">
-					The same service, <strong className="text-fg">orders</strong>, declared with each SDK, and the contract it
-					exports. Pick your language; every snippet is checked against that SDK&apos;s main branch in CI.
+					The same service, <strong className="text-fg">orders</strong>, declared with each SDK, the contract it
+					exports, and what docuconf generates from that contract. Pick your language; every snippet is checked
+					against that SDK&apos;s main branch in CI.
 				</p>
 				<Tabs group="lang" linkable label="Language">
 					{SDK_ROWS.map((r) => (
@@ -210,7 +215,7 @@ export default function Home() {
 									/>
 								</div>
 								<div className="min-w-0">
-									<p className="mb-1 text-sm font-medium text-muted">2 · The contract your platform checks</p>
+									<p className="mb-1 text-sm font-medium text-muted">2 · The contract it exports</p>
 									<Code
 										lang="cue"
 										title="contract.cue"
@@ -226,6 +231,8 @@ export default function Home() {
 						</Tab>
 					))}
 				</Tabs>
+				<h3 id="outputs" className="mt-12 scroll-mt-24 text-sm font-medium text-muted">3 · What docuconf generates from the contract (the Go example)</h3>
+				<OutputViewer tabs={OUTPUT_TABS} />
 			</Section>
 
 			{/* Principles */}

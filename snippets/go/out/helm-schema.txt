@@ -1,0 +1,997 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "docuconf": {
+      "type": "object",
+      "description": "Inputs for orders-api, checked against its docuconf contract.",
+      "additionalProperties": false,
+      "properties": {
+        "global": {
+          "description": "Set by Helm for the docuconf library chart; ignored."
+        },
+        "values": {
+          "type": "object",
+          "description": "Environment variables, as typed values.",
+          "additionalProperties": false,
+          "properties": {
+            "ALLOWED_ORIGINS": {
+              "description": "Origins allowed to call the API from a browser",
+              "anyOf": [
+                {
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "DATABASE_URL": {
+              "description": "Postgres connection string for the orders database (secret: supply a secretKeyRef or injected)",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "secretKeyRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "secretKeyRef": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "LOG_LEVEL": {
+              "description": "Minimum log level emitted",
+              "anyOf": [
+                {
+                  "enum": [
+                    "debug",
+                    "info",
+                    "warn",
+                    "error"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "configMapKeyRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "configMapKeyRef": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "PORT": {
+              "description": "HTTP listen port",
+              "anyOf": [
+                {
+                  "maximum": 65535,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "configMapKeyRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "configMapKeyRef": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "resourceFieldRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "resourceFieldRef": {
+                      "type": "object",
+                      "required": [
+                        "resource"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "resource": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "REQUEST_TIMEOUT": {
+              "description": "Time limit for handling one request",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|ms|s|m|h))+$"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "configMapKeyRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "configMapKeyRef": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "WORKER_COUNT": {
+              "description": "Number of background workers processing orders",
+              "anyOf": [
+                {
+                  "maximum": 64,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "configMapKeyRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "configMapKeyRef": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "resourceFieldRef"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "resourceFieldRef": {
+                      "type": "object",
+                      "required": [
+                        "resource"
+                      ],
+                      "additionalProperties": true,
+                      "properties": {
+                        "resource": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "type": "object",
+                      "required": [
+                        "provider"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        },
+                        "ref": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "podAnnotations": {
+              "description": "Pod annotations shared by every injector.",
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "podLabels": {
+              "description": "Pod labels shared by every injector.",
+              "type": "object",
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "required": [
+            "DATABASE_URL"
+          ]
+        },
+        "files": {
+          "type": "object",
+          "description": "Where each file input comes from.",
+          "additionalProperties": false,
+          "properties": {
+            "discounts": {
+              "description": "Discount codes accepted at checkout",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "secret"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "secret": {
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "key": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "keys": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "csi"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "csi": {
+                      "required": [
+                        "secretProviderClass"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "secretProviderClass": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "driver": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "required": [
+                        "provider"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "inline"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "inline": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "inline"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "inline": {
+                      "type": "object",
+                      "required": [
+                        "codes"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "codes": {
+                          "type": "object",
+                          "description": "Percent off for each discount code",
+                          "additionalProperties": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "configMap"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "configMap": {
+                      "required": [
+                        "name",
+                        "key"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "key": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "image"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "image": {
+                      "required": [
+                        "reference"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "reference": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "pullPolicy": {
+                          "enum": [
+                            "Always",
+                            "IfNotPresent",
+                            "Never"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            },
+            "serving-tls": {
+              "description": "Certificate to serve HTTPS with. Without it, the service serves HTTP",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "secret"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "secret": {
+                      "required": [
+                        "name"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "keys": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "certificate"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "certificate": {
+                      "required": [
+                        "name",
+                        "secretName"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "dnsNames": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "privateKey": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "algorithm": {
+                              "enum": [
+                                "RSA",
+                                "ECDSA",
+                                "Ed25519"
+                              ]
+                            }
+                          }
+                        },
+                        "duration": {
+                          "type": "string",
+                          "pattern": "^([0-9]+(ns|us|ms|s|m|h))+$"
+                        },
+                        "renewBefore": {
+                          "type": "string",
+                          "pattern": "^([0-9]+(ns|us|ms|s|m|h))+$"
+                        },
+                        "secretName": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "csi"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "csi": {
+                      "required": [
+                        "secretProviderClass"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "secretProviderClass": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "driver": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "injected"
+                  ],
+                  "additionalProperties": {
+                    "type": "null"
+                  },
+                  "properties": {
+                    "injected": {
+                      "required": [
+                        "provider"
+                      ],
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "podAnnotations": {
+                          "description": "Pod annotations the injector needs; {input}, and for a file {path}, {dir} and {file}, are expanded.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "podLabels": {
+                          "description": "Pod labels the injector needs; placeholders as for podAnnotations.",
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "provider": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "null",
+                  "description": "Unset."
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "values"
+      ]
+    }
+  },
+  "required": [
+    "docuconf"
+  ]
+}

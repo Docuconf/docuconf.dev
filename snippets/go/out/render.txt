@@ -1,0 +1,45 @@
+env:
+  - name: ALLOWED_ORIGINS
+    value: https://shop.example.com
+  - name: DATABASE_URL
+    valueFrom:
+      secretKeyRef:
+        name: orders-db
+        key: url
+  - name: LOG_LEVEL
+    value: warn
+  - name: WORKER_COUNT
+    value: "8"
+volumes:
+  - configMap:
+      name: orders-api-discounts-7c44d96990
+      defaultMode: 292
+      items:
+        - key: discounts.yaml
+          path: discounts.yaml
+    name: dc-discounts
+  - name: dc-serving-tls
+    secret:
+      secretName: orders-tls
+      defaultMode: 256
+volumeMounts:
+  - name: dc-discounts
+    mountPath: /etc/orders/discounts
+    readOnly: true
+  - name: dc-serving-tls
+    mountPath: /etc/orders/tls
+    readOnly: true
+configMaps:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: orders-api-discounts-7c44d96990
+    immutable: true
+    data:
+      discounts.yaml: |
+        codes:
+          WELCOME10: 10
+          SPRING25: 25
+restartTriggers: []
+podAnnotations: {}
+podLabels: {}

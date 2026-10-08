@@ -15,7 +15,7 @@ import { pageGraph, termSets } from '@/lib/seo';
 export const metadata = {
 	title: 'Inputs: variables, files, sources and overlays',
 	description:
-		'Every input a docuconf contract can describe: 9 environment variable types, 6 file types, value and file sources, wire encodings, secret injection (Bank-Vaults, Vault Agent) and config-file overlays such as appsettings.Production.json.',
+		'Every input a docuconf contract can describe: 9 environment variable types, 6 file types, value and file sources, wire encodings, secret injection (Bank-Vaults, Vault Agent), secret rotation and config-file overlays such as appsettings.Production.json.',
 	alternates: { canonical: '/spec/inputs/' },
 };
 
@@ -139,7 +139,73 @@ Mount rules, enforced by the meta-schema: a file is mounted at its parent direct
 
 **Resolved** fields — a Secret's `type` and `keys`, a Certificate's spec — are metadata the platform tooling reads from the cluster. They are never secret contents. When absent, those checks move to boot.
 
-**Rotation.** `reload: watch` means the app rereads the file, so the platform does nothing. `reload: restart` makes the platform roll the pods when the source changes. Inline content is content-hashed, so it always rolls the pods.
+**Rotation.** `reload: watch` means the app rereads the file, so the platform does nothing. `reload: restart` makes the platform roll the pods when the source changes. Inline content is content-hashed, so it always rolls the pods. For secrets in environment variables and keys with an overlap, see [Secret rotation](#rotation).
+
+<h2 id="rotation">Secret rotation</h2>
+
+docuconf delivers secrets and checks them. It does not store, issue or rotate them: Vault, External Secrets, cert-manager and the Secrets Store CSI driver do that. What the contract decides is how a rotated value reaches the running app, and that depends on how the secret is delivered.
+
+| Delivered as | How a rotated value reaches the app |
+|---|---|
+| Env var from a Secret (`secretKeyRef`) | Environment variables are read once, when the process starts. A rotated value reaches the app on the next restart or redeploy, which the platform owns. |
+| File secret (a TLS key pair, a Vault Agent file, a CSI volume) | `reload: watch`: the app rereads the file and nothing restarts. `reload: restart`: the platform rolls the pods when the source changes. Files are projected with `items`, never `subPath`, so updates reach the mounted file. |
+| Dynamic secret with a lease (Vault database credentials) | Deliver it as a file written by Vault Agent or the CSI driver, with `reload: watch`, so each renewal reaches the app. Or the app fetches it itself, and the contract declares the Vault address and role instead of the credential. |
+| Injected env value (vault-env, `op run`) | Resolved when the process starts, so a rotated value needs a rollout. |
+| API key with an overlap, two keys valid at once | Declare both keys; see [below](#dual-keys). |
+
+<h3 id="dual-keys">Two valid keys during a rotation</h3>
+
+An API key or signing key can be rotated without downtime if, for a while, both the old and the new key work. Who needs the overlap depends on the app's side of the call.
+
+**The app verifies keys** (it accepts webhooks or API calls). Declare a secret `list` of string keys that holds one or two items. Length limits on each item mean an empty or truncated key stops the app at boot instead of locking callers out:
+
+```cue
+WEBHOOK_KEYS: {
+	type:          "list"
+	description:   "Keys a webhook caller may sign with: the current key, plus the previous one during a rotation"
+	required:      true
+	secret:        true
+	items:         "string"
+	encoding:      "csv"
+	separator:     ","
+	minItems:      1
+	maxItems:      2
+	itemMinLength: 32
+	itemMaxLength: 128
+}
+```
+
+The platform supplies it like any secret, as one `secretKeyRef`, and the Secret holds the keys joined by commas. Because the value is a reference, the item checks run at boot: an empty item, a key under 32 characters or a third key fails with `out_of_range` or `too_many_items`. The app accepts a request signed with any key in the list. To rotate:
+
+1. Add the new key as the second item (`old,new`) and roll out. The app now accepts both.
+2. Switch the callers to the new key.
+3. Remove the old key (`new`) and roll out.
+
+If two variables suit the app better, declare a required `API_KEY` and an optional `API_KEY_PREVIOUS`, with the same length limits, and accept either:
+
+```cue
+API_KEY: {
+	type:        "string"
+	description: "The key callers send: the current key"
+	required:    true
+	secret:      true
+	minLength:   32
+	maxLength:   128
+}
+API_KEY_PREVIOUS: {
+	type:        "string"
+	description: "The previous key, still accepted while callers switch to API_KEY"
+	secret:      true
+	minLength:   32
+	maxLength:   128
+}
+```
+
+The platform sets `API_KEY_PREVIOUS` (a `secretKeyRef`) only during a rotation: move the old key there and the new key to `API_KEY`, roll out, switch the callers, then drop `API_KEY_PREVIOUS` and roll out again. The orders example apps demonstrate the list form with `WEBHOOK_KEYS`.
+
+**The app sends a key** (it calls another service). Declare one secret key. Rotate it by updating the Secret once the receiving service accepts the new key; the app picks it up on its next restart or redeploy.
+
+Either way, docuconf's part is the contract, the check before deploy (the value must be a reference, never a literal) and the check at boot (count and length). Issuing the new key, storing it and deciding when to rotate stay with the secret manager.
 
 <h2 id="overlays">Config-file overlays</h2>
 

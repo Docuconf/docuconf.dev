@@ -140,3 +140,9 @@ figure pre.shiki,
 [role='tabpanel'] > div:first-child > pre.shiki {
 	margin-top: 0;
 }
+
+/* The homepage's output viewer: long generated files scroll inside their frame. */
+.output-viewer pre.shiki {
+	max-height: 30rem;
+	overflow: auto;
+}
