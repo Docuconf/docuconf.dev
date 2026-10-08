@@ -5,7 +5,7 @@ import { pageGraph, termSets } from '@/lib/seo';
 export const metadata = {
 	title: 'Outputs: everything generated from a contract',
 	description:
-		'Every docuconf generation target: contract.cue and contract.json, validation reports, pod env and volumes, Helm values.schema.json and library chart, config-file overlays, boot reports, and the OCI, Crossplane, Knative, OpenAPI, admission-policy and KCL targets on the roadmap.',
+		'Every docuconf generation target: contract.cue and contract.json, validation reports, pod env, volumes and injector annotations, Helm values.schema.json and library chart, config-file overlays, generated docs, boot reports, and the OCI, Crossplane, Knative, OpenAPI, admission-policy and KCL targets on the roadmap.',
 	alternates: { canonical: '/spec/outputs/' },
 };
 
@@ -62,14 +62,19 @@ It exits 1 when there is any problem, and never prints a secret value — includ
 - **`volumes` and `volumeMounts`** — one per file input, projected with `items` (never `subPath`), read-only, mode `0400` for secrets and `0444` otherwise.
 - **`configMaps`** — immutable ConfigMaps for inline content, named with a hash of their content so any change rolls the pods.
 - **`restartTriggers`** — Secrets and ConfigMaps whose change must roll the pods (inputs with `reload: restart`).
+- **`podAnnotations` and `podLabels`** — what injectors need on the pod template, from `injected` sources and the values document's shared maps, with placeholders expanded. Empty without injectors. See [Enabling the injector](/spec/inputs/#injector-annotations).
 
 ## Helm
 
-`docuconf helm -contract contract.cue -chart .` writes the chart's `files/docuconf/contract.json` and `values.schema.json`. Helm then enforces the contract on every `lint`, `template`, `install` and `upgrade`, and the docuconf library chart renders the same env, volumes and mounts as `#Render`. JSON Schema cannot compare durations, see the cluster or apply policy, so `docuconf vet` still runs in CI for those.
+`docuconf helm -contract contract.cue -chart .` writes the chart's `files/docuconf/contract.json` and `values.schema.json`. Helm then enforces the contract on every `lint`, `template`, `install` and `upgrade`, and the docuconf library chart renders the same env, volumes and mounts as `#Render`, and the same pod annotations and labels through its `docuconf.podAnnotations` and `docuconf.podLabels` helpers. JSON Schema cannot compare durations, see the cluster or apply policy, so `docuconf vet` still runs in CI for those.
+
+## Generated docs
+
+`docuconf docs` builds a docs model from the contract and renders `CONFIG.md` for developers and `CONFIG.agents.md` for coding and ops agents, from each input's description and details. See [Generated docs](/spec/generated-docs/).
 
 ## Boot-time reports
 
-Every SDK checks the real environment and files when the process starts and reports **all** violations together, each with a [stable error code](/spec/sdk-requirements/#error-codes), to stderr and to `/dev/termination-log` so `kubectl describe pod` shows why it stopped. This is the only check that sees secret contents, injected values and certificate details.
+Every SDK checks the real environment and files when the process starts and reports **all** violations together, each with a [stable error code](/spec/sdk-requirements/#error-codes), to stderr and to `/dev/termination-log` so `kubectl describe pod` shows why it stopped. This is the only check that sees secret contents, injected values and certificate details. For a program in a language without an SDK, `docuconf check` runs the same checks against a contract, and `docuconf exec` runs them and then starts the program with the environment it checked.
 
 <Callout title="What is next">
 The **OCI artifact** ties a contract to its image digest, so a platform can never validate image B against contract A. **`docuconf diff`** classifies changes as compatible or breaking for CI gates. **`function-docuconf`** brings validation and rendering into Crossplane v2 composition pipelines. Both the artifact and `diff` are fully specified; see the [roadmap](/roadmap/).

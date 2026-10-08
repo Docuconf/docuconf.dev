@@ -22,12 +22,13 @@ export const metadata = {
 
 **docuconf** is a typed contract between an application and the platform that runs it. The app declares its configuration once, in its language's leading config library, and exports a **`ConfigContract`** (`apiVersion: docuconf.dev/v1alpha1`). The platform checks everything it will supply against that contract **before deploying**, and the app's SDK checks the real environment again **at boot**.
 
-This specification has three parts:
+This specification has four parts:
 
 | Part | Answers |
 |---|---|
-| [Inputs](/spec/inputs/) | What an app can declare: 9 variable types, 6 file types, where values and files come from, how they are written into the environment, how injected secrets and config-file overlays fit in. |
+| [Inputs](/spec/inputs/) | What an app can declare: 9 variable types, 6 file types, where values and files come from, how they are written into the environment, how injected secrets (and the pod annotations that enable their injectors) and config-file overlays fit in, and how lengths are counted. |
 | [Outputs](/spec/outputs/) | Everything generated from a contract, from the contract itself to Helm schemas and pod configuration, and what each output is for. |
+| [Generated docs](/spec/generated-docs/) | Where each input's description and details come from, and how `docuconf docs` turns the contract into `CONFIG.md` for developers and `CONFIG.agents.md` for agents. |
 | [SDK requirements](/spec/sdk-requirements/) | What every language SDK must support to conform, the boot-time error codes, and where each SDK stands today. |
 
 <Callout title="Status: v1alpha1">

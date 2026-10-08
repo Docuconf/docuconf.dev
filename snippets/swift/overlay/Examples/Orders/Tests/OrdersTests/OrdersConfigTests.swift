@@ -2,9 +2,9 @@ import Docuconf
 import Testing
 @testable import Orders
 
-// LoadOptions(environment:) replaces the process environment, so a test passes exactly the variables it wants.
+// load(_:environment:) reads only this dictionary: never the process environment, and no termination log.
 func load(_ environment: [String: String]) async throws -> OrdersConfig {
-    try await Docuconf.load(OrdersConfig.self, options: LoadOptions(environment: environment))
+    try await Docuconf.load(OrdersConfig.self, environment: environment)
 }
 
 @Test func defaults() async throws {

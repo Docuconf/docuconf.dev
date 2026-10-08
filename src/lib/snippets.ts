@@ -19,7 +19,7 @@ function dedent(lines: string[]): string {
 	return lines.map((l) => l.slice(cut)).join('\n');
 }
 
-/** The text of a snippet: the whole file, or the lines from `from` to `to`, dedented. */
+/** The text of a snippet: the whole file, or the lines from `from` to `to`, dedented unless `keepIndent`. */
 export function snippetText(slug: string, s: Snippet): string {
 	const text = readFileSync(join(ROOT, slug, s.file), 'utf8').replace(/\s+$/, '');
 	if (!s.from) return text;
@@ -32,7 +32,8 @@ export function snippetText(slug: string, s: Snippet): string {
 		end = lines.findIndex((l, i) => i >= start && lineMatches(l, s.to!));
 		if (end < 0) throw new Error(`snippets/${slug}/${s.file}: no line after "${s.from}" matches "${s.to}"`);
 	}
-	return dedent(lines.slice(start, end + 1));
+	const picked = lines.slice(start, end + 1);
+	return s.keepIndent ? picked.join('\n') : dedent(picked);
 }
 
 export function check(row: SdkRow, id: string): Check {

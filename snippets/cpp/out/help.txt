@@ -1,0 +1,18 @@
+orders: a small HTTP service configured with docuconf
+Usage: ./build/examples/orders/orders [OPTIONS]
+
+Options:
+  -h,--help                   Print this help message and exit
+  --port INT [8080]           HTTP listen port
+
+
+docuconf:
+  --docuconf-export PATH      Write the configuration contract (contract.cue) to this path, or - for standard output, and exit without reading the environment
+
+Environment variables:
+  PORT             HTTP listen port [int, default "8080", or --port]
+  LOG_LEVEL        Minimum log level emitted [one of debug|info|warn|error, default "info"]
+  DATABASE_URL     Primary Postgres connection string [url, REQUIRED, secret]
+  ALLOWED_ORIGINS  Origins allowed to call the API (CORS) [list of string, separated by ",", default "http://localhost:3000"]
+  REQUEST_TIMEOUT  Time allowed to read a request [duration, default "30s"]
+  WORKER_COUNT     Number of request worker threads [int, default "4"]

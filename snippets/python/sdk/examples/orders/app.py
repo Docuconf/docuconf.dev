@@ -5,19 +5,19 @@ from __future__ import annotations
 import contextlib
 import json
 import logging
-import sys
 from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Annotated, ClassVar, Literal
 
 from pydantic import Field, SecretStr
-from pydantic_settings import BaseSettings, NoDecode
+from pydantic_settings import NoDecode
 
-import docuconf
-from docuconf import Csv, Url
+from docuconf import Csv, DocuconfSettings, Url
 
 
-class Settings(BaseSettings):
+# DocuconfSettings is pydantic-settings' BaseSettings, whose constructor runs docuconf's checks:
+# Settings() and docuconf.load(Settings) are the same thing.
+class Settings(DocuconfSettings):
     # metadata.name in the exported contract.
     docuconf_service: ClassVar[str] = "orders"
 
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     log_level: Literal["debug", "info", "warn", "error"] = Field("info", description="Minimum log level")
     # SecretStr makes it a secret in the contract, and keeps it out of reprs and error messages.
     database_url: Annotated[SecretStr, Url(schemes=("postgres",))] = Field(
-        description="Postgres connection string for orders"
+        max_length=2048, description="Postgres connection string for orders"
     )
     # NoDecode + Csv: read "a,b" rather than pydantic-settings' default JSON list.
     allowed_origins: Annotated[list[str], NoDecode, Csv()] = Field(
@@ -38,6 +38,13 @@ class Settings(BaseSettings):
         le=timedelta(minutes=5),
         description="Timeout for a request to finish",
     )
+    """How long a request may take before the server gives up on it.
+
+    Raise it when clients upload large order batches. Keep it below the load balancer's idle timeout, or the
+    client sees a reset rather than a ``504``.
+
+    The platform writes Go durations such as ``45s``; docuconf converts them to ISO 8601 for pydantic.
+    """
     worker_count: int = Field(4, ge=1, le=64, description="Workers processing orders")
 
 
@@ -71,12 +78,9 @@ def handler(settings: Settings) -> type[BaseHTTPRequestHandler]:
 
 
 def main() -> None:
-    try:
-        # Reads the environment, checks every rule, and reports all violations at once.
-        settings = docuconf.load(Settings)
-    except docuconf.ConfigValidationError as e:
-        print(e, file=sys.stderr)
-        sys.exit(1)
+    # Reads the environment and checks every rule. On failure it prints every problem at once, writes the
+    # termination log and exits with status 1, without a traceback.
+    settings = Settings.load_or_exit()
     logging.basicConfig(level=settings.log_level.upper())
     server = ThreadingHTTPServer(("", settings.port), handler(settings))
     logging.info("orders listening on :%d", settings.port)

@@ -27,6 +27,7 @@ contract.#Contract & {
 			secret: true
 			configKey: "Orders:DatabaseUrl"
 			schemes: ["postgres"]
+			maxLength: 2048
 		}
 		ORDERS__LOGLEVEL: {
 			type: "enum"
@@ -55,6 +56,7 @@ contract.#Contract & {
 		ORDERS__WORKERCOUNT: {
 			type: "int"
 			description: "Background workers that process new orders"
+			details: "Each worker holds one connection from the pool of `OrdersOptions.DatabaseUrl`, so keep this below the database's connection limit.\n\n- Raise it when the order queue backs up.\n- Lower it when the database is the bottleneck."
 			configKey: "Orders:WorkerCount"
 			min: 1
 			max: 64

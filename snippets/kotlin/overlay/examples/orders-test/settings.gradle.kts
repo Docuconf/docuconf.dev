@@ -1,10 +1,12 @@
 // The orders example's sources, built with kotlin("test") for the site's test.
 pluginManagement {
+    includeBuild("../../docuconf-gradle-plugin")
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
 }
+includeBuild("../..")
 
 dependencyResolutionManagement {
     repositories {
@@ -13,9 +15,3 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "orders-test"
-
-includeBuild("../..") {
-    dependencySubstitution {
-        substitute(module("dev.docuconf:docuconf-hoplite")).using(project(":docuconf-hoplite"))
-    }
-}

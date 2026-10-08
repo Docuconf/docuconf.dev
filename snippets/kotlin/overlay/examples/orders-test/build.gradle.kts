@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.2.21"
+    // Indexes the KDoc comments that describe some of the properties.
+    id("dev.docuconf")
 }
 
 java {
@@ -15,10 +17,14 @@ kotlin {
 }
 
 dependencies {
-    implementation("dev.docuconf:docuconf-hoplite:0.1.0")
+    implementation("dev.docuconf:docuconf-hoplite:0.1.0-SNAPSHOT")
     testImplementation(kotlin("test"))
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+docuconf {
+    configClass.set("dev.docuconf.examples.orders.OrdersConfig")
 }

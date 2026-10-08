@@ -60,7 +60,8 @@ export function website() {
 export function sdkSourceCode() {
 	return SDKS.map((s) => ({
 		'@type': 'SoftwareSourceCode',
-		'@id': `${GITHUB_ORG_URL}/${s.repo}#code${s.repo === 'docuconf-js' ? `-${s.slug}` : ''}`,
+		// One repository with several SDKs (docuconf-js, docuconf-php) gets one id per SDK.
+		'@id': `${GITHUB_ORG_URL}/${s.repo}#code${SDKS.filter((x) => x.repo === s.repo).length > 1 ? `-${s.slug}` : ''}`,
 		name: `docuconf for ${s.name}`,
 		codeRepository: `${GITHUB_ORG_URL}/${s.repo}`,
 		programmingLanguage: s.language === '.NET' ? 'C#' : s.language,
@@ -148,7 +149,7 @@ export function specification() {
 		license: LICENSE_URL,
 		publisher: { '@id': ORG_ID },
 		isPartOf: { '@id': SITE_ID },
-		hasPart: ['/spec/inputs/', '/spec/outputs/', '/spec/sdk-requirements/'].map((p) => ({ '@id': absolute(`${p}#article`) })),
+		hasPart: ['/spec/inputs/', '/spec/outputs/', '/spec/generated-docs/', '/spec/sdk-requirements/'].map((p) => ({ '@id': absolute(`${p}#article`) })),
 	};
 }
 

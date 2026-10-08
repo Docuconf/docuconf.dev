@@ -5,7 +5,7 @@ APPLICATION FAILED TO START
 
 Description:
 
-The configuration does not satisfy the docuconf contract (2 problems):
+docuconf: 2 configuration problems:
 
     [missing_required] ORDERS_DATABASEURL: is required (orders.database-url)
     [out_of_range] ORDERS_PORT: is below min 1 (got 0)

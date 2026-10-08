@@ -1,9 +1,12 @@
+// Until the first release: build docuconf and its Gradle plugin from a clone next to this project.
 pluginManagement {
+    includeBuild("../docuconf-kotlin/docuconf-gradle-plugin")
     repositories {
         gradlePluginPortal()
         mavenCentral()
     }
 }
+includeBuild("../docuconf-kotlin")
 
 dependencyResolutionManagement {
     repositories {
@@ -12,10 +15,3 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "app"
-
-// Until the first release: build docuconf from a clone next to this project.
-includeBuild("../docuconf-kotlin") {
-    dependencySubstitution {
-        substitute(module("dev.docuconf:docuconf-hoplite")).using(project(":docuconf-hoplite"))
-    }
-}

@@ -24,21 +24,24 @@ struct OrdersConfig: DocuconfConfig {
     @Env("request.timeout", "Timeout for one request", .range(.seconds(1) ... .seconds(300)))
     var requestTimeout: Duration = .seconds(30)
 
-    @Env("worker.count", "Number of background order workers", .range(1...64))
+    // A description may be a whole doc comment: its first paragraph is the description, the rest the details.
+    @Env("worker.count", """
+        Number of background order workers
+
+        Each worker takes one order at a time from the queue and holds one database connection, so keep this
+        at or below the pool size:
+
+        - one connection per worker;
+        - plus one for the HTTP handlers.
+        """, .range(1...64))
     var workerCount = 4
 }
 
 // `orders docuconf-export --out contract.cue` writes the contract and exits without reading the environment.
 Docuconf.exportIfRequested(OrdersConfig.self, name: "orders")
 
-let config: OrdersConfig
-do {
-    // Reads the environment and reports every violation at once (also to /dev/termination-log).
-    config = try await Docuconf.load(OrdersConfig.self)
-} catch {
-    Docuconf.printToStandardError("\(error)")
-    exit(1)
-}
+// Reads the environment. On a problem it prints every violation at once (also to /dev/termination-log) and exits 1.
+let config = await Docuconf.loadOrExit(OrdersConfig.self)
 
 let configJSON: [String: Any] = [
     "port": config.port,

@@ -26,6 +26,7 @@ export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
 			{ href: '/spec/', label: 'Overview' },
 			{ href: '/spec/inputs/', label: 'Inputs' },
 			{ href: '/spec/outputs/', label: 'Outputs' },
+			{ href: '/spec/generated-docs/', label: 'Generated docs' },
 			{ href: '/spec/sdk-requirements/', label: 'SDK requirements' },
 		],
 	},

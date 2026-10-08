@@ -5,7 +5,7 @@ import { Tab, Tabs } from '@/components/tabs';
 import { TerminalTabs } from '@/components/terminal';
 import { GITHUB_ORG } from '@/components/site';
 import { JsonLd } from '@/components/spec-tables';
-import { conformanceShort, SDK_ROWS } from '@/lib/sdk-data';
+import { CONFORMANCE_CASES, conformanceShort, SDK_ROWS } from '@/lib/sdk-data';
 import { siteGraph } from '@/lib/seo';
 import { command, output, snippetText } from '@/lib/snippets';
 
@@ -284,7 +284,7 @@ export default function Home() {
 				</div>
 				<p className="mt-4 text-sm text-muted">
 					None is on a package registry yet; each Get started page installs from git. Conformance is the shared
-					suite of 112 cases every SDK runs.{' '}
+					suite of {CONFORMANCE_CASES} cases every SDK runs.{' '}
 					<Link href="/spec/sdk-requirements/" className="text-accent underline">
 						Compare what each SDK supports.
 					</Link>

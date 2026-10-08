@@ -19,7 +19,7 @@ export function SdkList() {
 	);
 }
 
-/** The roadmap's language checklist: every SDK is built; none is released. */
+/** The roadmap's language checklist: every SDK is built, with docs and length limits; none is released. */
 export function SdkRoadmap() {
 	return (
 		<ul className="contains-task-list">
@@ -32,6 +32,27 @@ export function SdkRoadmap() {
 					<Link href={`/languages/${r.slug}/`}>{r.name}</Link> on {r.host}
 				</li>
 			))}
+			<li className="task-list-item">
+				<span className="task-mark">
+					<span aria-hidden="true">✓</span>
+					<span className="sr-only">Done: </span>
+				</span>
+				Every SDK exports <code>description</code> and <code>details</code> from the app&apos;s doc comments, for <Link href="/spec/generated-docs/">generated docs</Link>
+			</li>
+			<li className="task-list-item">
+				<span className="task-mark">
+					<span aria-hidden="true">✓</span>
+					<span className="sr-only">Done: </span>
+				</span>
+				Every SDK checks the length limits, counted in characters
+			</li>
+			<li className="task-list-item">
+				<span className="task-mark">
+					<span aria-hidden="true">✓</span>
+					<span className="sr-only">Done: </span>
+				</span>
+				Release automation (release-please) in every SDK repository
+			</li>
 			<li className="task-list-item">
 				<span className="task-mark">
 					<span aria-hidden="true">○</span>

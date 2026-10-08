@@ -14,7 +14,7 @@ contract.#Contract & {
 		ALLOWED_ORIGINS: {
 			type: "list"
 			description: "Origins allowed to call the API (CORS)"
-			configKey: "allowed.origins"
+			configKey: "allowedOrigins"
 			items: "string"
 			encoding: "csv"
 			minItems: 1
@@ -25,13 +25,14 @@ contract.#Contract & {
 			description: "Postgres connection URL for the orders database"
 			required: true
 			secret: true
-			configKey: "database.url"
+			configKey: "databaseUrl"
 			schemes: ["postgres"]
+			maxLength: 2048
 		}
 		LOG_LEVEL: {
 			type: "enum"
 			description: "Minimum level of log messages"
-			configKey: "log.level"
+			configKey: "logLevel"
 			values: ["debug", "info", "warn", "error"]
 			default: "info"
 		}
@@ -46,7 +47,7 @@ contract.#Contract & {
 		REQUEST_TIMEOUT: {
 			type: "duration"
 			description: "Time limit for handling one request"
-			configKey: "request.timeout"
+			configKey: "requestTimeout"
 			encoding: "iso8601"
 			min: "1s"
 			max: "5m"
@@ -55,7 +56,8 @@ contract.#Contract & {
 		WORKER_COUNT: {
 			type: "int"
 			description: "Number of background workers that process orders"
-			configKey: "worker.count"
+			details: "A KDoc works instead of @Doc: its first sentence is the description, and the rest is the details,\nlonger docs for `docuconf docs`. Each worker holds one connection from the pool of `databaseUrl`,\nso keep this below the database's connection limit.\n\n- Raise it when the order queue backs up.\n- Lower it when the database is the bottleneck."
+			configKey: "workerCount"
 			min: 1
 			max: 64
 			default: 4

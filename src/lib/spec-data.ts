@@ -4,6 +4,8 @@
 //
 // Source of truth: SPEC.md in docuconf/docuconf-go (v1alpha1). Keep in sync.
 
+import { LANGUAGES } from './sdk-data';
+
 export const SPEC_VERSION = 'v1alpha1';
 export const API_VERSION = 'docuconf.dev/v1alpha1';
 export const KIND = 'ConfigContract';
@@ -33,7 +35,7 @@ export const VAR_TYPES: VarType[] = [
 	{
 		type: 'string',
 		summary: 'Free text.',
-		constraints: 'minLength, maxLength, pattern (RE2, matches anywhere unless anchored)',
+		constraints: 'minLength, maxLength (in characters), pattern (RE2, matches anywhere unless anchored)',
 		platformValue: 'string',
 		wire: 'as is',
 	},
@@ -68,7 +70,7 @@ export const VAR_TYPES: VarType[] = [
 	{
 		type: 'url',
 		summary: 'An absolute URL with a scheme.',
-		constraints: 'schemes',
+		constraints: 'schemes, maxLength (the URL as it is)',
 		platformValue: 'string with scheme://',
 		wire: 'as is',
 	},
@@ -82,14 +84,14 @@ export const VAR_TYPES: VarType[] = [
 	{
 		type: 'list',
 		summary: 'A list of strings or integers.',
-		constraints: 'items (string | int), encoding, separator, minItems, maxItems, itemMin and itemMax (int items)',
+		constraints: 'items (string | int), encoding, separator, minItems, maxItems, itemMin and itemMax (int items), itemMinLength and itemMaxLength (string items, after splitting)',
 		platformValue: 'list',
 		wire: 'per encoding: csv, json or indexed',
 	},
 	{
 		type: 'json',
 		summary: 'A structured value, checked against a JSON Schema generated from the app’s own type.',
-		constraints: 'schema (JSON Schema)',
+		constraints: 'schema (JSON Schema), maxLength (the wire string)',
 		platformValue: 'any JSON value',
 		wire: 'compact JSON',
 	},
@@ -97,7 +99,8 @@ export const VAR_TYPES: VarType[] = [
 
 export const VAR_FIELDS: { field: string; rule: string }[] = [
 	{ field: 'type', rule: 'One of the variable types. The set is closed in v1alpha1.' },
-	{ field: 'description', rule: 'Required, at least 5 characters. Rendered into docs.' },
+	{ field: 'description', rule: 'Required. Plain text, at least 5 characters: what the input is, in one phrase. Rendered into generated docs.' },
+	{ field: 'details', rule: 'Optional. CommonMark: why the input exists and when to change it. Not blank, at most 4000 characters. Used only in generated docs, never at runtime.' },
 	{ field: 'required', rule: 'Default false. A required variable cannot have a default.' },
 	{ field: 'default', rule: 'Must satisfy the variable’s own constraints (checked at declaration time).' },
 	{ field: 'secret', rule: 'The value must come from a secretKeyRef. No default, no examples, never printed.' },
@@ -159,7 +162,7 @@ export const INJECTORS: { name: string; how: string; docuconf: string }[] = [
 	{
 		name: 'Vault Agent injector',
 		how: 'Writes secrets as files under /vault/secrets, rendered from templates.',
-		docuconf: 'injected file source; the SDK checks the file at boot like any other.',
+		docuconf: 'injected file source, with the pod annotations that make the agent write the file at its declared path; the SDK checks the file at boot like any other.',
 	},
 	{
 		name: 'External Secrets Operator',
@@ -179,7 +182,7 @@ export const INJECTORS: { name: string; how: string; docuconf: string }[] = [
 	{
 		name: 'Operators and webhooks (OpenTelemetry, service meshes)',
 		how: 'Add variables such as OTEL_EXPORTER_OTLP_ENDPOINT to the pod.',
-		docuconf: 'injected value source without ref, so the platform knows who supplies it.',
+		docuconf: 'injected value source without ref, so the platform knows who supplies it, with the pod annotation or label that switches the injector on.',
 	},
 ];
 
@@ -258,7 +261,7 @@ export const FILE_TYPES: FileType[] = [
 
 export const FILE_FIELDS: { field: string; rule: string }[] = [
 	{ field: 'type', rule: 'One of the file types.' },
-	{ field: 'description, required, group, deprecated', rule: 'As for variables.' },
+	{ field: 'description, details, required, group, deprecated', rule: 'As for variables.' },
 	{ field: 'secret', rule: 'Content must come from a secret store. Forced true for tls and keystore.' },
 	{ field: 'path', rule: 'Where the app reads it: a directory for tls, a file otherwise. Absolute.' },
 	{ field: 'pathEnv', rule: 'A variable the platform sets to path (SSL_CERT_FILE). Not also declared in vars.' },
@@ -297,7 +300,7 @@ export const FILE_SOURCES: FileSource[] = [
 	{
 		source: 'injected (Vault Agent and similar)',
 		forTypes: 'any',
-		checkedBeforeDeploy: 'That the injector is named; no volume is rendered, the injector writes the file at path. Checked at boot.',
+		checkedBeforeDeploy: 'That the injector is named, and its pod annotations and labels; no volume is rendered, the injector writes the file at path. Checked at boot.',
 	},
 ];
 
@@ -359,11 +362,11 @@ export const OUTPUTS: Output[] = [
 	{
 		id: 'pod-render',
 		name: 'Pod configuration',
-		artifact: 'env, volumes, volumeMounts, configMaps, restartTriggers',
+		artifact: 'env, volumes, volumeMounts, configMaps, restartTriggers, podAnnotations, podLabels',
 		producedBy: 'docuconf render, #Render',
 		consumedBy: 'Deployments and other pod templates',
 		status: 'implemented',
-		notes: 'Values in each app’s wire encoding, $ escaped, files projected with items (never subPath), inline content as content-hashed ConfigMaps.',
+		notes: 'Values in each app’s wire encoding, $ escaped, files projected with items (never subPath), inline content as content-hashed ConfigMaps, and the pod-template annotations and labels injectors need.',
 	},
 	{
 		id: 'helm-values-schema',
@@ -377,7 +380,7 @@ export const OUTPUTS: Output[] = [
 	{
 		id: 'helm-library',
 		name: 'Helm library chart',
-		artifact: 'docuconf.env, .volumes, .volumeMounts, .configMaps, .reloaderAnnotations',
+		artifact: 'docuconf.env, .volumes, .volumeMounts, .configMaps, .reloaderAnnotations, .podAnnotations, .podLabels',
 		producedBy: 'helm/docuconf chart',
 		consumedBy: 'App charts',
 		status: 'implemented',
@@ -431,11 +434,20 @@ export const OUTPUTS: Output[] = [
 	{
 		id: 'markdown-docs',
 		name: 'Configuration docs',
-		artifact: 'Markdown reference of every input',
-		producedBy: 'SDKs (SHOULD)',
-		consumedBy: 'Developers, Backstage',
-		status: 'specified',
-		notes: 'Generated from the same declaration, so docs cannot drift from code.',
+		artifact: 'CONFIG.md for developers, CONFIG.agents.md for coding and ops agents',
+		producedBy: 'docuconf docs',
+		consumedBy: 'Developers, AI agents, an AGENTS.md or llms.txt',
+		status: 'implemented',
+		notes: 'Rendered from the docs model, which is built from the contract, so docs cannot drift from code. Each input’s description and details come from its doc comment in the app.',
+	},
+	{
+		id: 'docs-model',
+		name: 'Docs model',
+		artifact: 'docs.json (kind ConfigDocs, apiVersion docs.docuconf.dev/v1alpha1)',
+		producedBy: 'docuconf docs --format model',
+		consumedBy: 'Renderers: the CLI, a website, an MCP server, a Backstage plugin',
+		status: 'implemented',
+		notes: 'Every fact a renderer shows, already phrased, checked against #DocsModel. Secrets never have a value in it.',
 	},
 	{
 		id: 'json-schema',
@@ -505,7 +517,7 @@ export const SDK_MUSTS: { title: string; detail: string }[] = [
 	{
 		title: 'Validate the declaration',
 		detail:
-			'At definition time: name format, description length, default against constraints, no default on required, RE2-only patterns, no watch where reload is unsupported.',
+			'At definition time: name format, description length, details not blank and at most 4000 characters, default against constraints, no default on required, RE2-only patterns, no watch where reload is unsupported.',
 	},
 	{
 		title: 'Export a conforming contract',
@@ -524,7 +536,7 @@ export const SDK_MUSTS: { title: string; detail: string }[] = [
 	},
 	{
 		title: 'Report every violation at boot',
-		detail: 'All together, each with a stable error code, never printing a secret value; also to /dev/termination-log.',
+		detail: 'All together, each with a stable error code, never printing a secret value; also to /dev/termination-log. Length limits count characters (Unicode code points), and a value outside them is out_of_range.',
 	},
 	{ title: 'Expose typed values', detail: 'A struct, class or inferred type — never a string map.' },
 	{
@@ -552,7 +564,10 @@ export const SDK_MUSTS: { title: string; detail: string }[] = [
 ];
 
 export const SDK_SHOULDS: { title: string; detail: string }[] = [
-	{ title: 'Generate Markdown docs', detail: 'From the declaration.' },
+	{
+		title: 'Export details',
+		detail: 'From the language’s natural doc location, beside the description. docuconf docs generates the documentation from the contract; an SDK needs no generator of its own.',
+	},
 	{
 		title: 'Framework integration',
 		detail: 'A Railtie, ValidateOnStart in .NET, a Next.js or NestJS adapter, a Spring auto-configuration.',
@@ -568,7 +583,7 @@ export const SDK_SHOULDS: { title: string; detail: string }[] = [
 export const ERROR_CODES: { code: string; meaning: string }[] = [
 	{ code: 'missing_required', meaning: 'A required variable or file input has no value.' },
 	{ code: 'invalid_type', meaning: 'The value does not parse as its type.' },
-	{ code: 'out_of_range', meaning: 'Outside min/max or the 64-bit range, a list item outside itemMin/itemMax, or a string or text file outside its length limits.' },
+	{ code: 'out_of_range', meaning: 'Outside min/max or the 64-bit range, a list item outside itemMin/itemMax, or a string, url, json value, list item or text file outside its length limits (counted in characters).' },
 	{ code: 'pattern_mismatch', meaning: 'A string or text file does not match its pattern.' },
 	{ code: 'not_in_enum', meaning: 'Not one of the enum’s values.' },
 	{ code: 'invalid_scheme', meaning: 'A URL with a scheme not in schemes.' },
@@ -601,7 +616,7 @@ export const SPEC_FAQ: { q: string; a: string }[] = [
 	},
 	{
 		q: 'What does docuconf generate from a contract?',
-		a: 'Today: the contract in CUE and JSON, a validation report (docuconf vet), the pod’s env, volumes, mounts and ConfigMaps (docuconf render), a Helm values.schema.json plus a library chart, and the SDK’s boot-time violation report. Specified next: an OCI artifact tied to the image digest, a compatibility report (docuconf diff) and a Crossplane composition function. Planned: Knative, Kubernetes OpenAPI, admission policy, KCL and .env.example targets.',
+		a: 'Today: the contract in CUE and JSON, a validation report (docuconf vet), the pod’s env, volumes, mounts, ConfigMaps and injector annotations (docuconf render), a Helm values.schema.json plus a library chart, generated docs for developers and AI agents (docuconf docs), and the SDK’s boot-time violation report. Specified next: an OCI artifact tied to the image digest, a compatibility report (docuconf diff) and a Crossplane composition function. Planned: Knative, Kubernetes OpenAPI, admission policy, KCL and .env.example targets.',
 	},
 	{
 		q: 'What must a docuconf language SDK support?',
@@ -609,7 +624,7 @@ export const SPEC_FAQ: { q: string; a: string }[] = [
 	},
 	{
 		q: 'Which languages have docuconf SDKs?',
-		a: 'Go, TypeScript/JavaScript, .NET, Python, Ruby, Java, Kotlin, Rust, Swift, Elixir and Gleam. Each builds on that ecosystem’s leading library, for example caarlos0/env in Go, T3 Env in TypeScript, the Options pattern in .NET, pydantic-settings in Python and Spring Boot configuration properties in Java.',
+		a: `${LANGUAGES.map((l) => l.language).join(', ').replace(/, ([^,]*)$/, ' and $1')}. Each builds on that ecosystem’s leading library, for example caarlos0/env in Go, T3 Env in TypeScript, the Options pattern in .NET, pydantic-settings in Python, Spring Boot configuration properties in Java, CLI11 in C++, and Laravel or Symfony configuration in PHP. In COBOL the declaration is an annotated copybook.`,
 	},
 	{
 		q: 'How does docuconf handle secrets?',

@@ -1,4 +1,4 @@
 ...
 docuconf: 2 configuration problems:
   - PORT [out_of_range]: is below min 1 (got "0")
-  - DATABASE_URL [missing_required]: is required but not set
+  - DATABASE_URL [missing_required]: is required but not set (Postgres connection string for the orders database)
