@@ -1038,7 +1038,7 @@ export const SDK_ROWS: SdkRow[] = [
 				text: 'Load the config in `main` before you start mist, and pass it to your wisp handler, as the example does. The same declaration runs on the JavaScript target, where it reads `process.env`.',
 			},
 		},
-		ci: { image: 'ghcr.io/gleam-lang/gleam:v1.14.0-erlang', setup: 'command -v git >/dev/null || (apt-get update -qq && apt-get install -y -qq git >/dev/null)' },
+		ci: { image: 'ghcr.io/gleam-lang/gleam:v1.18.1-erlang', setup: 'command -v git >/dev/null || (apt-get update -qq && apt-get install -y -qq git >/dev/null)' },
 		checks: [
 			{ id: 'install', cwd: '@install', run: 'gleam deps download && gleam run', show: 'gleam deps download' },
 			{ id: 'test', cwd: 'examples/orders', run: 'gleam test' },
