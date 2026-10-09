@@ -916,8 +916,7 @@ export const SDK_ROWS: SdkRow[] = [
 		ci: { image: 'swift:6.2' },
 		checks: [
 			{ id: 'install', cwd: '@install', run: 'swift build', show: 'swift build' },
-			// The example has no test target; add one for the site's test.
-			{ id: 'test-target', cwd: 'Examples/Orders', run: 'printf \'\\npackage.targets.append(.testTarget(name: "OrdersTests", dependencies: ["Orders"]))\\n\' >> Package.swift' },
+			// The example's own OrdersTests target also compiles the site's overlay test.
 			{ id: 'test', cwd: 'Examples/Orders', run: 'swift test' },
 			{ id: 'boot-error', cwd: 'Examples/Orders', run: 'swift build && PORT=0 swift run Orders', show: 'PORT=0 swift run Orders', exit: 1, expect: true },
 			{ id: 'export', cwd: 'Examples/Orders', run: 'swift run Orders docuconf-export --out contract.cue' },
