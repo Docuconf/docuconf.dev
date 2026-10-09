@@ -70,6 +70,21 @@
       "min": "1s",
       "max": "5m"
     },
+    "WEBHOOK_KEYS": {
+      "name": "WEBHOOK_KEYS",
+      "description": "Keys that verify the signature on incoming payment webhooks",
+      "details": "A webhook is accepted when it is signed with any key in the list, so the key can be rotated without turning webhooks away. To rotate:\n\n 1. add the new key as the second item, and roll out;\n 2. switch the sender to the new key;\n 3. remove the old key, and roll out.\n\nEach key is 32 to 256 characters, so an empty or truncated key fails at boot. Without this variable, the service rejects every webhook.",
+      "required": false,
+      "secret": true,
+      "separator": ",",
+      "type": "list",
+      "items": "string",
+      "encoding": "csv",
+      "minItems": 1,
+      "maxItems": 2,
+      "itemMinLength": 32,
+      "itemMaxLength": 256
+    },
     "WORKER_COUNT": {
       "name": "WORKER_COUNT",
       "description": "Number of background workers processing orders",

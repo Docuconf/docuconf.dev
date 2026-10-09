@@ -8,6 +8,11 @@ env:
         key: url
   - name: LOG_LEVEL
     value: warn
+  - name: WEBHOOK_KEYS
+    valueFrom:
+      secretKeyRef:
+        name: orders-webhooks
+        key: keys
   - name: WORKER_COUNT
     value: "8"
 volumes:
