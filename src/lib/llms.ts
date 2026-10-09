@@ -24,7 +24,7 @@ import {
 	VAR_TYPES,
 } from './spec-data';
 
-const SUMMARY = `docuconf is an open-source project for typed configuration contracts between an application and the Kubernetes platform that runs it. Each language SDK extends that language's leading config library and exports a ${KIND} (apiVersion ${API_VERSION}) in CUE. The platform validates the values, files and secrets it will supply against the contract before deploying (docuconf CLI, CUE/Crossplane, or a Helm values schema), and the SDK validates the real environment again at boot.`;
+const SUMMARY = `docuconf is an open-source project for typed configuration contracts between an application and the Kubernetes platform that runs it. Each language SDK extends that language's leading config library and exports a ${KIND} (apiVersion ${API_VERSION}) as contract.cue, or the same as JSON. From it docuconf generates a Helm values schema, the pod's env, volumes and ConfigMaps, and docs for developers and agents (${absolute('/spec/outputs/')}). The platform validates the values, files and secrets it will supply against the contract before deploying (docuconf CLI, CUE/Crossplane, or a Helm values schema), and the SDK validates the real environment again at boot.`;
 
 /** The install command a Get started page shows, on one line. */
 export function installCommand(row: SdkRow): string {
@@ -49,7 +49,7 @@ docuconf covers environment variables (9 types), file inputs (config files, TLS 
 ## Specification
 
 - [Core specification](${absolute('/spec/')}): overview, the three checks, FAQ
-- [Inputs](${absolute('/spec/inputs/')}): variable types, value sources, injection, file types and sources, overlays, wire encodings, profiles
+- [Inputs](${absolute('/spec/inputs/')}): variable types, value sources, injection, file types and sources, secret rotation, overlays, wire encodings, profiles
 - [Outputs](${absolute('/spec/outputs/')}): every generation target and its status
 - [Generated docs](${absolute('/spec/generated-docs/')}): description and details, the docs model, \`docuconf docs\`, CONFIG.md for developers and CONFIG.agents.md for agents, and where each SDK takes the text from
 - [SDK requirements](${absolute('/spec/sdk-requirements/')}): what every language SDK must support, error codes, SDK status

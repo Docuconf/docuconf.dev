@@ -27,7 +27,7 @@ This was tolerable when one team owned one app on one server. It does not hold u
 
 docuconf gives that API a **contract**.
 
-An application declares its variables once, in its own language, using the env library it already uses. docuconf exports that declaration as a CUE document: the contract. The platform checks every deploy against the contract, so a missing, mistyped or out-of-range value stops the rollout, not the pod. At boot, the same declaration checks the real environment and gives the code typed values.
+An application declares its variables once, in its own language, using the env library it already uses. docuconf exports that declaration as the contract, a CUE document (or the same as JSON), and generates the Helm values schema, the pod config and the docs from it. The platform checks every deploy against the contract, so a missing, mistyped or out-of-range value stops the rollout, not the pod. At boot, the same declaration checks the real environment and gives the code typed values.
 
 CUE is the contract language because it was built for exactly this: it combines types, constraints and values in one model, and lets independent sources of rules (the app's contract, the platform's policy) be checked together without either editing the other.
 

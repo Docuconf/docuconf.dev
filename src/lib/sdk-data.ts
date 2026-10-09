@@ -176,6 +176,33 @@ export const SDK_ROWS: SdkRow[] = [
 			{ id: 'boot-error', cwd: 'examples/orders', run: 'PORT=0 go run .', exit: 1, expect: true },
 			{ id: 'export', cwd: 'examples/orders', run: 'docuconf export -pkg ./internal/config -type Config -name orders-api -package orders -o contract.cue' },
 			{ id: 'vet', cwd: 'examples/orders', run: 'docuconf vet -contract contract.cue -values values.yaml', exit: 1, expect: true },
+			// What the contract produces, for the homepage's output viewer (src/lib/outputs.ts). CONFIG.md,
+			// CONFIG.agents.md and docs.json are committed in the example, so the sdk/ copies keep them current.
+			{
+				id: 'docs',
+				cwd: 'examples/orders',
+				run: 'docuconf docs contract.cue --check CONFIG.md && docuconf docs contract.cue --format agents --check CONFIG.agents.md && docuconf docs contract.cue --format model --check docs.json',
+			},
+			{
+				id: 'render',
+				cwd: 'examples/orders',
+				run: 'docuconf render -contract contract.cue -values deploy/values.yaml -files deploy/files.yaml',
+				expect: true,
+			},
+			{
+				id: 'helm-schema',
+				cwd: 'examples/orders',
+				run: 'chart="$(mktemp -d)" && docuconf helm -contract contract.cue -chart "$chart" >/dev/null && cat "$chart/values.schema.json" && rm -rf "$chart"',
+				show: 'docuconf helm -contract contract.cue -chart chart',
+				expect: true,
+			},
+			{
+				id: 'helm-contract-json',
+				cwd: 'examples/orders',
+				run: 'chart="$(mktemp -d)" && docuconf helm -contract contract.cue -chart "$chart" >/dev/null && cat "$chart/files/docuconf/contract.json" && rm -rf "$chart"',
+				show: 'docuconf helm -contract contract.cue -chart chart',
+				expect: true,
+			},
 		],
 	},
 	{

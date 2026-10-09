@@ -40,3 +40,16 @@ Releases are automated with [release-please](https://github.com/googleapis/relea
 
 The release workflow is `.github/workflows/release-please.yml`; its configuration is `release-please-config.json` and
 `.release-please-manifest.json`.
+
+## Code snippets and generated files
+
+Every snippet the site shows lives under `snippets/<slug>/` and is checked against that SDK's `main` branch by the
+`snippets` workflow (`scripts/snippets.ts`; the commands are the `checks` in `src/lib/sdk-data.ts`). That includes the
+homepage's output viewer (`src/lib/outputs.ts`): `CONFIG.md`, `CONFIG.agents.md` and `docs.json` are copies of the files
+committed in docuconf-go's `examples/orders`, and `contract.json`, `values.schema.json` and the pod config are the
+stored output of the `helm-contract-json`, `helm-schema` and `render` checks. When the workflow fails because an SDK
+changed, refresh the copies and outputs from a local clone and commit them:
+
+```
+node scripts/snippets.ts check go --git ../docuconf-go --ref origin/main --update
+```
