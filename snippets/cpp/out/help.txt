@@ -16,4 +16,4 @@ Environment variables:
   ALLOWED_ORIGINS  Origins allowed to call the API (CORS) [list of string, separated by ",", default "http://localhost:3000"]
   REQUEST_TIMEOUT  Time allowed to read a request [duration, default "30s"]
   WORKER_COUNT     Number of request worker threads [int, default "4"]
-  WEBHOOK_KEYS     Keys that verify the signature on incoming payment webhooks [list of string, separated by ",", secret]
+  WEBHOOK_KEYS     Keys that verify the signature on incoming payment webhooks [keySet, secret]
