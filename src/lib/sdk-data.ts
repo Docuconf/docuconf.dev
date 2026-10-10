@@ -1397,8 +1397,8 @@ export const SDK_ROWS: SdkRow[] = [
 			{
 				id: 'install',
 				cwd: '@install',
-				run: 'export GOBIN="$(cd .. && pwd)/.bin" && go install github.com/docuconf/docuconf-cobol/cmd/docuconf-cobol@main && go install github.com/docuconf/docuconf-go/cmd/docuconf@v0.0.0-20261008010717-a84031e0174b && docuconf-cobol generate app-config.cpy && cobc -c APPCFG.cbl && docuconf help >/dev/null',
-				show: 'go install github.com/docuconf/docuconf-cobol/cmd/docuconf-cobol@main\ngo install github.com/docuconf/docuconf-go/cmd/docuconf@v0.0.0-20261008010717-a84031e0174b',
+				run: 'export GOBIN="$(cd .. && pwd)/.bin" && go install github.com/docuconf/docuconf-cobol/cmd/docuconf-cobol@main && go install github.com/docuconf/docuconf-go/cmd/docuconf@v0.0.0-20261009192536-caca80452b05 && docuconf-cobol generate app-config.cpy && cobc -c APPCFG.cbl && docuconf help >/dev/null',
+				show: 'go install github.com/docuconf/docuconf-cobol/cmd/docuconf-cobol@main\ngo install github.com/docuconf/docuconf-go/cmd/docuconf@v0.0.0-20261009192536-caca80452b05',
 			},
 			// The generator from this checkout and the CLI at the commit it pins, on PATH for the checks below.
 			{ id: 'cli', cwd: '.', run: 'export GOBIN="$PWD/.bin" && go install ./cmd/docuconf-cobol && go install "github.com/docuconf/docuconf-go/cmd/docuconf@$(cat .github/docuconf-go.ref)"' },
