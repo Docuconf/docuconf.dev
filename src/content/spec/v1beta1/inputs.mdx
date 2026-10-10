@@ -4,29 +4,19 @@ import {
 	FileSourcesTable,
 	FileTypesTable,
 	InjectorsTable,
-	JsonLd,
 	OverlayHostsTable,
 	ValueSourcesTable,
 	VarFieldsTable,
 	VarTypesTable,
 } from '@/components/spec-tables';
-import { pageGraph, termSets } from '@/lib/seo';
+import { SpecMd } from '@/components/spec-version';
+import { SPEC } from './data';
 
 export const metadata = {
 	title: 'Inputs: variables, files, sources and overlays',
 	description:
-		'Every input a docuconf contract can describe: 9 environment variable types, 6 file types, value and file sources, wire encodings, secret injection (Bank-Vaults, Vault Agent), secret rotation and config-file overlays such as appsettings.Production.json.',
-	alternates: { canonical: '/spec/inputs/' },
+		'Every input a docuconf v1beta1 contract can describe: 10 environment variable types including keySet, 6 file types, deprecated inputs, value and file sources, wire encodings and the exact parsing rules, secret injection, secret rotation and config-file overlays.',
 };
-
-<JsonLd
-	data={pageGraph({
-		path: '/spec/inputs/',
-		title: 'docuconf inputs',
-		description: metadata.description,
-		extra: termSets().filter((t) => t['@id'].includes('/spec/inputs/')),
-	})}
-/>
 
 # Inputs
 
@@ -40,12 +30,13 @@ The platform supplies each input from a **source**: a literal, a Kubernetes refe
 
 <h3 id="variable-types">Variable types</h3>
 
-The type set is closed in v1alpha1: a new type needs a spec change, because every SDK must parse it identically.
+Every SDK must parse each type identically, so a type exists only once the spec defines it. In v1beta1 the set can grow but never shrink: a new type is an addition, and a tool that does not know one reports it instead of guessing. v1beta1 adds `keySet`.
 
-<VarTypesTable />
+<VarTypesTable spec={SPEC} />
 
 - `pattern` is RE2 and matches **anywhere** in the value; anchor it with `^…$` to match the whole value. RE2's `\d`, `\w`, `\s` and `\b` are ASCII-only.
 - `json` variables and `config` files carry a JSON Schema **generated from the app's own type**, so the platform checks structured values against the type the app deserializes into.
+- A **`keySet`** is a set of secret keys that are all valid at once, for the side that verifies: webhook signatures, inbound API keys, JWT HMAC verification. It is always `secret`, so it has no default and no examples. It travels in a list's wire encodings, and its keys are never trimmed. The number of keys outside `minKeys`..`maxKeys` is `too_few_items` or `too_many_items`; a key outside `keyMinLength`..`keyMaxLength`, and an empty key whatever the bounds (a stray separator), is `out_of_range`. See [Secret rotation](#dual-keys).
 - An **empty string** is a value for `string`. For every other type it means *unset*.
 
 <h3 id="length-limits">Length limits</h3>
@@ -54,18 +45,40 @@ The type set is closed in v1alpha1: a new type needs a spec change, because ever
 - `minLength` and `maxLength` bound a `string`, and `maxLength` also a `url` (the URL as it is) or a `json` value.
 - `maxLength` on a `json` value bounds its **wire string**: before deploy, the compact JSON the renderer writes; at boot, the raw value the app receives, whitespace included, before it is parsed. The Helm values schema cannot express it, so `docuconf vet` and the SDK check it.
 - `itemMinLength` and `itemMaxLength` bound each item of a `string` list, after the list is split, so a `csv` separator never counts. They are not allowed on an `int` list, as `itemMin` and `itemMax` are not allowed on a `string` list.
+- `keyMinLength` and `keyMaxLength` bound each key of a `keySet` the same way.
 - A value outside its limits is `out_of_range` at boot. A too-long secret is reported by its length, never its value.
 - An app that stores values in fixed-width byte fields, such as a COBOL `PIC X(n)`, should declare a limit that leaves room for multi-byte characters, or restrict values to ASCII with a `pattern` such as `^[ -~]*$`.
 
 ### Fields on every variable
 
-<VarFieldsTable />
+<VarFieldsTable spec={SPEC} />
+
+<h3 id="deprecated">Deprecating an input</h3>
+
+An input that is going away is marked `deprecated` first, so the platform can stop setting it before it disappears. This works for variables and file inputs alike:
+
+```cue
+OLD_PORT: {
+	type:        "int"
+	description: "Port the service listened on before 2.0"
+	deprecated: {message: "Use PORT instead", replacedBy: "PORT"}
+}
+```
+
+- `message` says what to use instead, or why the input is going away: not blank, and at most 500 characters. `replacedBy` names the input that replaces it.
+- A `required` input cannot be deprecated, since the platform could not stop setting it.
+- **The platform sees a warning, never an error.** `#Validate` lists every deprecated input the platform still sets, as a value, an overlay value or a file source, in `deprecatedSet`. `docuconf vet` prints one line per warning with its message, and exits 0 when there are only warnings.
+- **The unknown-name check stays strict.** Values that set an input the contract does not declare are always rejected; deprecation is how an input is removed in stages. `docuconf diff` reports a deprecation as notable, and a removal as breaking for the platform, saying when the input was already deprecated.
+- SDKs should log a warning at boot for each deprecated input that is set, naming the input and its message, never its value. The input still loads and is still checked.
+- The generated docs show the notice and link to the replacement, and tell agents not to add uses of deprecated inputs.
+
+This is your own inputs' deprecation. How docuconf deprecates its own fields and APIs is on [Versioning and deprecation](/versioning/).
 
 <h3 id="value-sources">Value sources</h3>
 
 A value is usually a literal. Some only exist in the cluster or are supplied at runtime, so the platform may give a reference instead:
 
-<ValueSourcesTable />
+<ValueSourcesTable spec={SPEC} />
 
 A **secret** variable is never a literal. It comes from a `secretKeyRef` or from an injector, and its content is checked only at boot. No docuconf tool ever prints a secret value.
 
@@ -86,7 +99,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT:
 LOG_LEVEL: warn                               # an ordinary literal
 ```
 
-<InjectorsTable />
+<InjectorsTable spec={SPEC} />
 
 SDKs validate injected values like any other, because they read the process environment at startup, after injection. If a secret still holds a reference (`vault:`, `op://`, `ref+`), the injector did not run, and the SDK fails with `invalid_type`, naming the variable and the reference scheme but never the value.
 
@@ -117,7 +130,7 @@ db-creds:
       vault.hashicorp.com/agent-inject-file-{input}: "{file}"
 ```
 
-renders the two shared annotations plus `agent-inject-secret-db-creds`, `agent-inject-template-db-creds`, `secret-volume-path-db-creds: /vault/secrets` and `agent-inject-file-db-creds: db.json`, so the agent writes the file exactly at the declared path. Values are strings: write `"true"`, not `true`. See [SPEC.md §4.5.2](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md#452-enabling-the-injector) for Bank-Vaults, the OpenTelemetry operator and the edge cases.
+renders the two shared annotations plus `agent-inject-secret-db-creds`, `agent-inject-template-db-creds`, `secret-volume-path-db-creds: /vault/secrets` and `agent-inject-file-db-creds: db.json`, so the agent writes the file exactly at the declared path. Values are strings: write `"true"`, not `true`. See <SpecMd version="v1beta1" anchor="#452-enabling-the-injector">SPEC.md §4.5.2</SpecMd> for Bank-Vaults, the OpenTelemetry operator and the edge cases.
 
 ## Files
 
@@ -125,17 +138,17 @@ renders the two shared annotations plus `agent-inject-secret-db-creds`, `agent-i
 
 <h3 id="file-types">File types</h3>
 
-<FileTypesTable />
+<FileTypesTable spec={SPEC} />
 
 ### Fields on every file input
 
-<FileFieldsTable />
+<FileFieldsTable spec={SPEC} />
 
 Mount rules, enforced by the meta-schema: a file is mounted at its parent directory, and a TLS pair at its own directory; no two inputs share a directory; none is mounted over a reserved directory such as `/`, `/etc`, `/etc/ssl/certs`, `/usr`, `/var` or `/app`; files are projected with `items`, never `subPath`, so rotation reaches them; secret files are mode `0400`, others `0444`.
 
 <h3 id="file-sources">File sources</h3>
 
-<FileSourcesTable />
+<FileSourcesTable spec={SPEC} />
 
 **Resolved** fields — a Secret's `type` and `keys`, a Certificate's spec — are metadata the platform tooling reads from the cluster. They are never secret contents. When absent, those checks move to boot.
 
@@ -157,30 +170,29 @@ docuconf delivers secrets and checks them. It does not store, issue or rotate th
 
 An API key or signing key can be rotated without downtime if, for a while, both the old and the new key work. Who needs the overlap depends on the app's side of the call.
 
-**The app verifies keys** (it accepts webhooks or API calls). Declare a secret `list` of string keys that holds one or two items. Length limits on each item mean an empty or truncated key stops the app at boot instead of locking callers out:
+**The app verifies keys** (it accepts webhooks or API calls). Declare a `keySet`:
 
 ```cue
 WEBHOOK_KEYS: {
-	type:          "list"
-	description:   "Keys that verify the signature on incoming payment webhooks"
-	secret:        true
-	items:         "string"
-	encoding:      "csv"
-	separator:     ","
-	minItems:      1
-	maxItems:      2
-	itemMinLength: 32
-	itemMaxLength: 256
+	type:         "keySet"
+	secret:       true
+	description:  "Keys that verify the signature on incoming payment webhooks"
+	minKeys:      1   // the default
+	maxKeys:      2   // the default
+	keyMinLength: 32
+	keyMaxLength: 256
 }
 ```
 
-The platform supplies it like any secret, as one `secretKeyRef`, and the Secret holds the keys joined by commas. Because the value is a reference, the item checks run at boot: an empty item, a key under 32 or over 256 characters, or a third key fails with `out_of_range` or `too_many_items`. The app accepts a request signed with any key in the list. To rotate:
+The platform supplies it like any secret, as one `secretKeyRef`, and the Secret holds the keys joined by commas, `old,new` during the overlap. Because the value is a reference, the checks run at boot: an empty key (a trailing comma), a truncated one or a third key fails with `out_of_range` or `too_many_items` instead of locking callers out. SDKs expose the keys in order, and should offer a constant-time `contains` and a helper that tries every key with a check you supply, such as an HMAC comparison. To rotate:
 
-1. Add the new key as the second item (`old,new`) and roll out. The app now accepts both.
-2. Switch the callers to the new key.
+1. Add the new key (`old,new`) and roll out. The app now accepts both.
+2. Switch the sender (the caller, or the signer) to the new key.
 3. Remove the old key (`new`) and roll out.
 
-If two variables suit the app better, declare a required `API_KEY` and an optional `API_KEY_PREVIOUS`, with the same length limits, and accept either:
+The generated docs print these steps for every key set, so an app's `details` need not repeat them.
+
+A host that cannot offer a key set may declare two variables instead, a required `API_KEY` and an optional `API_KEY_PREVIOUS`, with the same length limits, and accept either:
 
 ```cue
 API_KEY: {
@@ -200,7 +212,11 @@ API_KEY_PREVIOUS: {
 }
 ```
 
-The platform sets `API_KEY_PREVIOUS` (a `secretKeyRef`) only during a rotation: move the old key there and the new key to `API_KEY`, roll out, switch the callers, then drop `API_KEY_PREVIOUS` and roll out again. The orders example apps demonstrate the list form with `WEBHOOK_KEYS`.
+The platform sets `API_KEY_PREVIOUS` (a `secretKeyRef`) only during a rotation: move the old key there and the new key to `API_KEY`, roll out, switch the callers, then drop `API_KEY_PREVIOUS` and roll out again.
+
+v1alpha1 recommended a secret `list` of strings with `minItems: 1`, `maxItems: 2` and item length limits. That still works, with the same wire format, but a `keySet` says what the list is for, rejects an empty key without a length limit, and gets its rotation steps in the docs. Changing a variable from such a list to a `keySet` changes its `type`, which `docuconf diff` reports as breaking for the contract; the Secret and the values need no change.
+
+**What the platform cannot check.** A rotation is only safe if every rollout keeps one key in common with the one before it. The platform supplies a reference and never sees the keys, so neither `#Validate` nor `docuconf vet` can check this: following the steps in order is the operator's job.
 
 **The app sends a key** (it calls another service). Declare one secret key. Rotate it by updating the Secret once the receiving service accepts the new key; the app picks it up on its next restart or redeploy.
 
@@ -238,8 +254,9 @@ overlays: platform: {
 - **Validation is identical**: overlay values are typed values checked by `#Validate`, the same as env values. Secrets never go in an overlay, because overlays are ConfigMaps.
 - **Overlays add, never replace.** The overlay sits at its own path, so the app's baked-in `appsettings.Production.json` and its values still apply. Mounting over the baked-in file would silently discard them, and the meta-schema rejects an overlay path that is also a baked-in config file.
 - `reload: watch` maps to the host's reload-on-change, so the app sees new values without a restart (in .NET, through `IOptionsMonitor<T>`). `restart` rolls the pods instead.
+- **The SDK reads the overlay exactly as `#Render` writes it.** It loads the file as optional, from under `DOCUCONF_FILE_ROOT` like a file input: a missing overlay is not an error, and one that does not parse, or does not hold an object at its top level, is `file_malformed`. Each variable's value is read at its `configKey`, case-sensitively, converted to the wire string it stands for (`50.0` is `50`, a `null` is unset), and then parsed like an env value.
 
-<OverlayHostsTable />
+<OverlayHostsTable spec={SPEC} />
 
 `docuconf render` and the Helm library chart write the overlay's ConfigMap, volume and mount. The SDKs for hosts that layer files load it in the right place; see the [SDK table](/spec/sdk-requirements/#sdks).
 
@@ -247,9 +264,27 @@ overlays: platform: {
 
 Environment values are strings. The platform always holds **typed** values — lists as lists, durations in Go syntax — and the renderer writes each one in the form the app's library parses. For most types every library agrees. Lists and durations differ, so the contract records the app's encoding:
 
-<EncodingTables />
+<EncodingTables spec={SPEC} />
 
-Renderers double every `$` in a literal (`$` becomes `$$`), because Kubernetes expands `$(NAME)` in env values. Platform authors never see encodings: they write `"90s"` and `["a", "b"]` for every app.
+Renderers double every `$` in a literal (`$` becomes `$$`), because Kubernetes expands `$(NAME)` in env values. Platform authors never see encodings: they write `"90s"` and `["a", "b"]` for every app. A `keySet` uses the same encodings and `separator` as a list of strings, with keys for items.
+
+<h3 id="parsing">Exact parsing</h3>
+
+There is one parsing rule per type, and it is exact: an SDK accepts exactly the strings below, whatever its host library accepts on its own. Where the host is more lenient (`strconv.ParseBool` takes `1` and `t`, `float()` takes `inf` and spaces, `Integer("010")` is octal), the SDK adds a pre-check that rejects the extra forms with `invalid_type`. The platform only ever renders the canonical forms; these rules decide what an app accepts from values set outside the platform, so that every SDK accepts the same ones.
+
+| Type | Accepted | Rejected (`invalid_type`) |
+|---|---|---|
+| every type | the value as given: **never trimmed**, ASCII digits only | `" true"`, `"8080\n"`, `"5s "` |
+| `bool` | `true` or `false` in any case: `TRUE`, `False` | `1`, `0`, `t`, `yes`, `on` |
+| `int` | `^[+-]?[0-9]+$`, base 10: `007` is 7 | `0x10`, `0o17`, `1_000`, `1e3`, `1.0`; outside 64 bits is `out_of_range` |
+| `float` | a digit on each side of the point, optional exponent: `0.5`, `1e-3` | `.5`, `5.`, `inf`, `NaN`, `0x1p4`, `0,5`, `1e400` |
+| `duration` (`go`) | Go's `time.ParseDuration` grammar: `1m30s`, `1.5h`, `-5s`, `0` | `5`, `5S`, `1d`, `1m 30s` |
+| `duration` (`iso8601`) | `P[nD][T[nH][nM][nS]]`, upper case, `,` or `.` for a fraction | years, months, weeks, a sign |
+| `duration` (`seconds`, `timespan`) | `^[0-9]+(\.[0-9]+)?$`; `[d.]hh:mm:ss[.f]` | a sign, an exponent |
+| list and `keySet` items | split on every separator, without trimming: `a, b` is `a` and ` b` | an empty or space-padded `int` item |
+| `json` | one JSON value, with only JSON whitespace around it | trailing text |
+
+The conformance suite tests these rules under the `strict-parsing` tag. See <SpecMd version="v1beta1" anchor="#5-wire-encoding-and-parsing">SPEC.md §5</SpecMd> for the full grammar.
 
 ## Profiles
 

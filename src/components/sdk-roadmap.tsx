@@ -4,6 +4,9 @@ import { GITHUB_ORG, LANGUAGES, SDK_ROWS } from '@/lib/sdk-data';
 
 export const SdkCount = () => <>{SDK_ROWS.length}</>;
 
+/** The SDK repositories outside docuconf-go, which holds the spec, the CLI and the Go SDK. */
+export const SdkRepoCount = () => <>{new Set(SDK_ROWS.map((r) => r.repo).filter((r) => r !== 'docuconf-go')).size}</>;
+
 /** "Go, TypeScript (T3 Env and NestJS), .NET, ..." */
 export function SdkList() {
 	return (

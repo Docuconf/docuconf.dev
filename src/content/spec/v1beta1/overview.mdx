@@ -1,0 +1,113 @@
+import { Callout } from '@/components/callout';
+import { Faq, OutputsTable } from '@/components/spec-tables';
+import { SpecMd } from '@/components/spec-version';
+import { SPEC } from './data';
+
+export const metadata = {
+	title: 'Core specification',
+	description:
+		'The draft docuconf ConfigContract (docuconf.dev/v1beta1): what changes from v1alpha1 (keySet, deprecated inputs, exact parsing, the shared conformance suite, docuconf diff, push and pull), every input an app can declare, everything generated from it, and what each language SDK must support.',
+};
+
+# Core specification
+
+**docuconf** is a typed contract between an application and the platform that runs it. The app declares its configuration once, in its language's leading config library, and exports a **`ConfigContract`** (`apiVersion: docuconf.dev/v1beta1`, once this draft is final). The platform checks everything it will supply against that contract **before deploying**, and the app's SDK checks the real environment again **at boot**.
+
+This specification has four parts:
+
+| Part | Answers |
+|---|---|
+| [Inputs](/spec/inputs/) | What an app can declare: 10 variable types including `keySet`, 6 file types, deprecated inputs, the exact parsing rules, where values and files come from, how they are written into the environment, how injected secrets (and the pod annotations that enable their injectors) and config-file overlays fit in, and how lengths are counted. |
+| [Outputs](/spec/outputs/) | Everything generated from a contract, from the contract itself to Helm schemas and pod configuration, and what each output is for, including `docuconf diff`, `push` and `pull`. |
+| [Generated docs](/spec/generated-docs/) | Where each input's description and details come from, and how `docuconf docs` turns the contract into `CONFIG.md` for developers and `CONFIG.agents.md` for agents. |
+| [SDK requirements](/spec/sdk-requirements/) | What every language SDK must support to conform, the boot-time error codes, the shared conformance suite, and where each SDK stands today. |
+
+<Callout title="Status: v1beta1, draft">
+`v1beta1` is the version the format freeze will produce. Until then these pages follow <SpecMd version="v1beta1">the draft SPEC.md</SpecMd> on docuconf-go's beta branch, and items are still marked **Implemented**, **Specified, not built**, or **Planned**. Once `v1beta1` is out it is additive only: nothing is removed or renamed and no rule gets stricter. See [Versioning and deprecation](/versioning/).
+</Callout>
+
+<h2 id="changes">What changes from v1alpha1</h2>
+
+For a `v1alpha1` contract, the planned migration is one line: `apiVersion` becomes `docuconf.dev/v1beta1`. Nothing else in the contract, the values files or the file sources has to change. The freeze will confirm this. What is new:
+
+| Change | What it means | Where |
+|---|---|---|
+| `keySet` | A variable type for secret keys that are valid at once, so a key can be rotated without an outage. SDKs expose the keys in order; the docs print the rotation steps. | [Inputs](/spec/inputs/#dual-keys) |
+| `deprecated` inputs | Mark a variable or file as going away, with a message and a replacement. The platform gets a warning, never an error; SDKs warn at boot. | [Inputs](/spec/inputs/#deprecated) |
+| Exact parsing | One rule per type, whatever the host library accepts: values are never trimmed, a `bool` is only `true` or `false`, an `int` is base 10. | [Inputs](/spec/inputs/#parsing) |
+| Field tables | The docs model turns a JSON Schema into a table of fields, so every renderer shows it the same way. | [Generated docs](/spec/generated-docs/#field-tables) |
+| A shared conformance suite for every input | Cases for files, profiles and overlays join the variable cases, and every SDK's export is compared with one golden contract. | [SDK requirements](/spec/sdk-requirements/#conformance) |
+| `docuconf diff`, `push` and `pull` | Classify contract changes for CI gates, and ship a contract with its image as an OCI artifact. | [Outputs](/spec/outputs/#diff) |
+
+These come from docuconf-go pull requests [#27](https://github.com/Docuconf/docuconf-go/pull/27) (the spec decisions), [#29](https://github.com/Docuconf/docuconf-go/pull/29) (exact parsing and the conformance suite), [#28](https://github.com/Docuconf/docuconf-go/pull/28) (the CLI) and [#30](https://github.com/Docuconf/docuconf-go/pull/30) (the versioning and security policies). None is merged yet.
+
+<h2 id="decisions">Decisions settled for beta</h2>
+
+The open questions in v1alpha1's SPEC.md §13 are answered in this draft:
+
+- **Optional variables with no default are allowed.** Whether an input is optional is the app's choice; docuconf does not prescribe how systems are set up.
+- **The unknown-name check stays strict.** An input on its way out is marked `deprecated` instead, which the platform sees as a warning.
+- **Build-time variables are not covered.** Contracts describe what an app reads at runtime; build-time settings belong to Docker and compilers.
+- **Sharing variables between services** is not a contract feature of its own; well-known fragments would cover it.
+- **Apps do not declare injector hints.** Which injector runs is a fact about the cluster, so pod annotations stay in the platform's documents.
+- **The docs model has field tables** for JSON Schemas, and keeps the raw schema for what a table cannot show.
+- **A key set is a first-class type**, `keySet`, rather than a list with conventional limits.
+
+Planned after beta, without changing anything that exists: several profiles at once (`profiles.separator`, later profiles winning), profiles for file inputs, and translatable descriptions and details. Deferred: file inputs that take a whole directory ([#26](https://github.com/Docuconf/docuconf-go/issues/26)). Still open, each in an issue: roles for one image that runs several processes ([#22](https://github.com/Docuconf/docuconf-go/issues/22)), `requiredIf` ([#23](https://github.com/Docuconf/docuconf-go/issues/23)), well-known fragments ([#24](https://github.com/Docuconf/docuconf-go/issues/24)) and platform-authored contracts ([#25](https://github.com/Docuconf/docuconf-go/issues/25)).
+
+## One contract, three checks
+
+```
+app repo (CI)
+  declaration ──export──▶ contract.cue ──▶ published with the image digest
+                                                │
+platform (CI, Crossplane or Helm)               ▼
+  values + file sources + policy ──▶ validate ──▶ render ──▶ pod env, volumes, overlays
+                                                                    │
+runtime                                                             ▼
+  injectors (Bank-Vaults, Vault Agent…) ──▶ process environment ──▶ SDK checks at boot
+```
+
+| When | Who | Catches |
+|---|---|---|
+| CI of the platform repo | `docuconf vet` | Wrong types, out-of-range values, typos, missing inputs, policy violations — before merge. |
+| Composition or install | Crossplane function, Helm `values.schema.json` | Bad values that reached the cluster anyway, and contract/image skew. |
+| Boot | The language SDK | What the platform cannot see: secret contents, injected values, certificate expiry and key match, file contents. |
+
+## A contract, briefly
+
+```cue
+// Code generated by docuconf. DO NOT EDIT.
+package orders
+
+import "docuconf.dev/contract"
+
+contract.#Contract & {
+	apiVersion: "docuconf.dev/v1beta1"
+	kind:       "ConfigContract"
+	metadata: {name: "orders-api", appVersion: "2.3.0", generator: {language: "go", sdk: "docuconf-go", version: "0.1.0"}}
+	vars: {
+		DATABASE_URL: {type: "url", description: "Primary Postgres connection string", required: true, secret: true, schemes: ["postgres"]}
+		PAYMENTS_TIMEOUT: {type: "duration", description: "Timeout for the payments service", default: "5s", max: "30s", encoding: "go"}
+		KAFKA_BROKERS: {type: "list", description: "Kafka brokers", required: true, items: "string", encoding: "csv", minItems: 1}
+		WEBHOOK_KEYS: {type: "keySet", description: "Keys that verify incoming payment webhooks", secret: true, keyMinLength: 32}
+		LEGACY_MODE: {type: "bool", description: "Old checkout flow, removed in 3.0", deprecated: {message: "No longer read; stop setting it"}}
+	}
+	files: {
+		"serving-tls": {type: "tls", description: "Serving certificate", required: true, path: "/etc/orders/tls", dnsNames: ["orders.internal"], minRemaining: "720h"}
+		"tax-rates": {type: "config", format: "yaml", description: "Tax rates by country", path: "/etc/orders/tax/rates.yaml", schema: {...}}
+	}
+}
+```
+
+The contract is plain data. It records what the app accepts, including how its library parses lists and durations, so the platform can write values the app will read correctly. It never contains a secret.
+
+## What is generated today
+
+<OutputsTable status="implemented" spec={SPEC} />
+
+The full list, including what is specified and planned, is on [Outputs](/spec/outputs/).
+
+## Frequently asked questions
+
+<Faq spec={SPEC} />

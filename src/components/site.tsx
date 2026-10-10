@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import { GITHUB_ORG } from '@/lib/sdk-data';
+import { CURRENT_SPEC, SPEC_PAGES, specSourceUrl } from '@/lib/spec-versions';
 import { MobileMenu } from './mobile-menu';
 import { Search } from './search';
 
 export { GITHUB_ORG };
 export const REPO = `${GITHUB_ORG}/docuconf-go`;
-export const SPEC_URL = `${REPO}/blob/main/spec/SPEC.md`;
+export const SPEC_URL = specSourceUrl(CURRENT_SPEC.version);
 export const PLAN_URL = `${REPO}/blob/main/docs/PLAN.md`;
 export const EDGE_CASES_URL = `${REPO}/blob/main/docs/EDGE_CASES.md`;
 
-export type NavPage = { href: string; label: string };
+/** `spec`: a page every spec version has; the sidebar points it at the version being read. */
+export type NavPage = { href: string; label: string; spec?: boolean };
 
 /** The site's pages, grouped as the menus show them. The sitemap lists them too. */
 export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
@@ -23,11 +25,8 @@ export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
 	{
 		title: 'Specification',
 		pages: [
-			{ href: '/spec/', label: 'Overview' },
-			{ href: '/spec/inputs/', label: 'Inputs' },
-			{ href: '/spec/outputs/', label: 'Outputs' },
-			{ href: '/spec/generated-docs/', label: 'Generated docs' },
-			{ href: '/spec/sdk-requirements/', label: 'SDK requirements' },
+			...SPEC_PAGES.map((p) => ({ href: `/spec/${p.slug}`, label: p.label, spec: true })),
+			{ href: '/versioning/', label: 'Versioning and deprecation' },
 		],
 	},
 	{
@@ -38,6 +37,7 @@ export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
 			{ href: '/feature-flags/', label: 'Config is not feature flags' },
 			{ href: '/roadmap/', label: 'Roadmap' },
 			{ href: '/community/', label: 'Get involved' },
+			{ href: '/security/', label: 'Security' },
 		],
 	},
 ];
@@ -121,6 +121,8 @@ export function SiteFooter() {
 					<Link href="/languages/" className="hover:text-fg">Get started</Link>
 					<Link href="/spec/" className="hover:text-fg">Specification</Link>
 					<a href={SPEC_URL} className="hover:text-fg">SPEC.md</a>
+					<Link href="/versioning/" className="hover:text-fg">Versioning</Link>
+					<Link href="/security/" className="hover:text-fg">Security</Link>
 					<a href={`${process.env.BASE_PATH ?? ''}/llms.txt`} className="hover:text-fg">llms.txt</a>
 					<a href={PLAN_URL} className="hover:text-fg">Plan</a>
 					<a href={EDGE_CASES_URL} className="hover:text-fg">Edge cases</a>

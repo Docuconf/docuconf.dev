@@ -1,24 +1,7 @@
-// Tables for the /spec pages, rendered from src/lib/spec-data.ts.
+// Tables for the /spec pages, rendered from a spec version's data (src/lib/spec-data.ts for v1alpha1, the default;
+// src/content/spec/<version>/data.ts for the others).
 import type { ReactNode } from 'react';
-import {
-	DURATION_ENCODINGS,
-	ERROR_CODES,
-	FILE_FIELDS,
-	FILE_SOURCES,
-	FILE_TYPES,
-	INJECTORS,
-	LIST_ENCODINGS,
-	OUTPUTS,
-	OVERLAY_HOSTS,
-	SDK_MUSTS,
-	SDK_SHOULDS,
-	SPEC_FAQ,
-	STATUS_LABEL,
-	type Status,
-	VALUE_SOURCES,
-	VAR_FIELDS,
-	VAR_TYPES,
-} from '@/lib/spec-data';
+import { STATUS_LABEL, type SpecData, type Status, V1ALPHA1 } from '@/lib/spec-data';
 
 /** A JSON-LD block. Content is our own static data, serialised at build time. */
 export function JsonLd({ data }: { data: object }) {
@@ -80,27 +63,29 @@ export function Table({ head, rows, caption }: { head: string[]; rows: ReactNode
 	);
 }
 
+type P = { spec?: SpecData };
+
 const C = ({ children }: { children: ReactNode }) => (
 	<code className="whitespace-nowrap rounded bg-card px-1 py-0.5 font-mono text-[0.85em]">{children}</code>
 );
 
-export const VarTypesTable = () => (
+export const VarTypesTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="Variable types"
 		head={['Type', 'Meaning', 'Constraint fields', 'Platform value', 'Wire form']}
-		rows={VAR_TYPES.map((t) => [<C key="t">{t.type}</C>, t.summary, t.constraints, t.platformValue, t.wire])}
+		rows={spec.varTypes.map((t) => [<C key="t">{t.type}</C>, t.summary, t.constraints, t.platformValue, t.wire])}
 	/>
 );
 
-export const VarFieldsTable = () => (
-	<Table caption="Variable fields" head={['Field', 'Rule']} rows={VAR_FIELDS.map((f) => [<C key="f">{f.field}</C>, f.rule])} />
+export const VarFieldsTable = ({ spec = V1ALPHA1 }: P) => (
+	<Table caption="Variable fields" head={['Field', 'Rule']} rows={spec.varFields.map((f) => [<C key="f">{f.field}</C>, f.rule])} />
 );
 
-export const ValueSourcesTable = () => (
+export const ValueSourcesTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="Value sources"
 		head={['Source', 'Example', 'Allowed for', 'Checked', 'Status']}
-		rows={VALUE_SOURCES.map((s) => [
+		rows={spec.valueSources.map((s) => [
 			s.source,
 			<C key="e">{s.example}</C>,
 			s.allowedFor,
@@ -110,31 +95,31 @@ export const ValueSourcesTable = () => (
 	/>
 );
 
-export const InjectorsTable = () => (
+export const InjectorsTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="Runtime injectors"
 		head={['Injector', 'What it does', 'How the contract describes it']}
-		rows={INJECTORS.map((i) => [i.name, i.how, i.docuconf])}
+		rows={spec.injectors.map((i) => [i.name, i.how, i.docuconf])}
 	/>
 );
 
-export const FileTypesTable = () => (
+export const FileTypesTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="File input types"
 		head={['Type', 'Content', 'Constraint fields', 'Secret']}
-		rows={FILE_TYPES.map((t) => [<C key="t">{t.type}</C>, t.content, t.constraints, t.secret])}
+		rows={spec.fileTypes.map((t) => [<C key="t">{t.type}</C>, t.content, t.constraints, t.secret])}
 	/>
 );
 
-export const FileFieldsTable = () => (
-	<Table caption="File input fields" head={['Field', 'Rule']} rows={FILE_FIELDS.map((f) => [<C key="f">{f.field}</C>, f.rule])} />
+export const FileFieldsTable = ({ spec = V1ALPHA1 }: P) => (
+	<Table caption="File input fields" head={['Field', 'Rule']} rows={spec.fileFields.map((f) => [<C key="f">{f.field}</C>, f.rule])} />
 );
 
-export const FileSourcesTable = () => (
+export const FileSourcesTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="File sources"
 		head={['Source', 'For', 'Checked before deploy', 'Status']}
-		rows={FILE_SOURCES.map((s) => [
+		rows={spec.fileSources.map((s) => [
 			s.source,
 			s.forTypes,
 			s.checkedBeforeDeploy,
@@ -143,31 +128,31 @@ export const FileSourcesTable = () => (
 	/>
 );
 
-export const OverlayHostsTable = () => (
+export const OverlayHostsTable = ({ spec = V1ALPHA1 }: P) => (
 	<Table
 		caption="Hosts that layer config files"
 		head={['Host', 'Baked-in files', 'Platform overlay', 'Reload']}
-		rows={OVERLAY_HOSTS.map((h) => [h.host, h.base, <C key="o">{h.overlay}</C>, h.reload])}
+		rows={spec.overlayHosts.map((h) => [h.host, h.base, <C key="o">{h.overlay}</C>, h.reload])}
 	/>
 );
 
-export const EncodingTables = () => (
+export const EncodingTables = ({ spec = V1ALPHA1 }: P) => (
 	<>
 		<Table
 			caption="List encodings"
 			head={['List encoding', 'Wire form', 'Native to']}
-			rows={LIST_ENCODINGS.map((e) => [<C key="e">{e.encoding}</C>, <C key="w">{e.wire}</C>, e.nativeTo])}
+			rows={spec.listEncodings.map((e) => [<C key="e">{e.encoding}</C>, <C key="w">{e.wire}</C>, e.nativeTo])}
 		/>
 		<Table
 			caption="Duration encodings"
 			head={['Duration encoding', 'Wire form for 90s', 'Native to']}
-			rows={DURATION_ENCODINGS.map((e) => [<C key="e">{e.encoding}</C>, <C key="w">{e.wire}</C>, e.nativeTo])}
+			rows={spec.durationEncodings.map((e) => [<C key="e">{e.encoding}</C>, <C key="w">{e.wire}</C>, e.nativeTo])}
 		/>
 	</>
 );
 
-export function OutputsTable({ status }: { status?: Status }) {
-	const rows = OUTPUTS.filter((o) => !status || o.status === status);
+export function OutputsTable({ status, spec = V1ALPHA1 }: P & { status?: Status }) {
+	const rows = spec.outputs.filter((o) => !status || o.status === status);
 	return (
 		<Table
 			caption="Generation targets"
@@ -185,10 +170,10 @@ export function OutputsTable({ status }: { status?: Status }) {
 	);
 }
 
-export function OutputDetails() {
+export function OutputDetails({ spec = V1ALPHA1 }: P) {
 	return (
 		<dl className="not-prose my-6 space-y-4">
-			{OUTPUTS.map((o) => (
+			{spec.outputs.map((o) => (
 				<div key={o.id} className="rounded-xl border border-border p-4">
 					<dt className="flex flex-wrap items-center gap-2 font-semibold">
 						{o.name} <StatusBadge status={o.status} />
@@ -217,18 +202,18 @@ function Numbered({ items }: { items: { title: string; detail: string }[] }) {
 	);
 }
 
-export const MustList = () => <Numbered items={SDK_MUSTS} />;
-export const ShouldList = () => <Numbered items={SDK_SHOULDS} />;
+export const MustList = ({ spec = V1ALPHA1 }: P) => <Numbered items={spec.sdkMusts} />;
+export const ShouldList = ({ spec = V1ALPHA1 }: P) => <Numbered items={spec.sdkShoulds} />;
 
-export const ErrorCodesTable = () => (
-	<Table caption="Boot error codes" head={['Code', 'Meaning']} rows={ERROR_CODES.map((e) => [<C key="c">{e.code}</C>, e.meaning])} />
+export const ErrorCodesTable = ({ spec = V1ALPHA1 }: P) => (
+	<Table caption="Boot error codes" head={['Code', 'Meaning']} rows={spec.errorCodes.map((e) => [<C key="c">{e.code}</C>, e.meaning])} />
 );
 
 /** The FAQ, visible on the page (FAQPage JSON-LD must match visible content). */
-export function Faq() {
+export function Faq({ spec = V1ALPHA1 }: P) {
 	return (
 		<div className="not-prose my-6 space-y-3">
-			{SPEC_FAQ.map((f) => (
+			{spec.faq.map((f) => (
 				<details key={f.q} className="group rounded-xl border border-border p-4 open:bg-card">
 					<summary className="cursor-pointer list-none font-semibold [&::-webkit-details-marker]:hidden">
 						<h3 className="inline text-base">{f.q}</h3>
@@ -240,10 +225,10 @@ export function Faq() {
 	);
 }
 
-export function faqJsonLd() {
+export function faqJsonLd(spec: SpecData = V1ALPHA1) {
 	return {
 		'@type': 'FAQPage',
-		mainEntity: SPEC_FAQ.map((f) => ({
+		mainEntity: spec.faq.map((f) => ({
 			'@type': 'Question',
 			name: f.q,
 			acceptedAnswer: { '@type': 'Answer', text: f.a },

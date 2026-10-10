@@ -1,23 +1,12 @@
-import { ErrorCodesTable, JsonLd, MustList, ShouldList } from '@/components/spec-tables';
+import { ErrorCodesTable, MustList, ShouldList } from '@/components/spec-tables';
 import { SdkCaveats, SdkMatrix } from '@/components/sdk-matrix';
-import { pageGraph, sdkSourceCode } from '@/lib/seo';
 import { SdkCount, SdkList } from '@/components/sdk-roadmap';
 
 export const metadata = {
 	title: 'SDK requirements: what every language SDK must support',
 	description:
 		'What a docuconf language SDK must do to conform: build on the host config library, cover every type, export a deterministic contract, validate the process environment at startup after injection, check every file, support config-file overlays, and report stable error codes. Plus the status of every SDK.',
-	alternates: { canonical: '/spec/sdk-requirements/' },
 };
-
-<JsonLd
-	data={pageGraph({
-		path: '/spec/sdk-requirements/',
-		title: 'docuconf SDK requirements',
-		description: metadata.description,
-		extra: sdkSourceCode(),
-	})}
-/>
 
 # SDK requirements
 

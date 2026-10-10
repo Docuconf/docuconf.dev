@@ -1,15 +1,10 @@
 import { DocsExample, DocsSourcesTable } from '@/components/generated-docs';
-import { JsonLd } from '@/components/spec-tables';
-import { pageGraph } from '@/lib/seo';
 
 export const metadata = {
 	title: 'Generated docs: CONFIG.md for developers, CONFIG.agents.md for agents',
 	description:
 		'How docuconf documents an app’s configuration: each input’s description and optional details come from the app’s own doc comments, the contract carries them, and docuconf docs renders CONFIG.md for developers and CONFIG.agents.md for coding and ops agents.',
-	alternates: { canonical: '/spec/generated-docs/' },
 };
-
-<JsonLd data={pageGraph({ path: '/spec/generated-docs/', title: 'docuconf generated docs', description: metadata.description })} />
 
 # Generated docs
 

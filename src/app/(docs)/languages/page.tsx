@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { JsonLd } from '@/components/spec-tables';
 import { LanguagePicker } from '@/components/language-picker';
+import { SdkTiers } from '@/components/sdk-tiers';
 import { SDK_ROWS } from '@/lib/sdk-data';
 import { pageGraph } from '@/lib/seo';
 
@@ -33,6 +34,13 @@ export default function Languages() {
 				They implement the same <Link href="/spec/">specification</Link> and pass the shared conformance suite; the{' '}
 				<Link href="/spec/sdk-requirements/">SDK requirements</Link> page compares what each one supports.
 			</p>
+			<h2 id="tiers">SDK tiers</h2>
+			<p>
+				Every SDK passes the same conformance suite, but they are not equally finished. A tier says how far each one
+				meets the bar, from criteria anyone can check in its repository: the conformance run, the shared export check,
+				the CI matrix, the example, and the features below. When an SDK misses a criterion, its page names the gap.
+			</p>
+			<SdkTiers />
 			<h2 id="not-here">Your language is not here?</h2>
 			<p>
 				Any language can have an SDK. The specification says what an SDK must do, and the shared conformance suite checks

@@ -1,9 +1,10 @@
 import { JsonLd } from '@/components/spec-tables';
 import { pageGraph } from '@/lib/seo';
-import { SdkRoadmap } from '@/components/sdk-roadmap';
+import { SdkRepoCount, SdkRoadmap } from '@/components/sdk-roadmap';
+import { Callout } from '@/components/callout';
 export const metadata = {
 	title: 'Roadmap',
-	description: 'What is done, what is next, and what comes later.',
+	description: 'Where docuconf stands on 2026-10-10: beta in progress, with the beta conformance suite passing in every SDK and the format freeze still to come. What is done, what is next, and what comes later.',
 	alternates: { canonical: '/roadmap/' },
 };
 
@@ -11,7 +12,31 @@ export const metadata = {
 
 # Roadmap
 
-## Now: the contract
+<Callout title="Status on 2026-10-10: beta in progress">
+The beta is not out. The spec is still `v1alpha1`, and `v1beta1` exists only as a [draft](/spec/v1beta1/). Below is what is done and what is left, as of 10 October 2026.
+</Callout>
+
+## Now: beta
+
+Done:
+
+- [x] The beta conformance suite, 316 cases: file inputs, profiles, overlays, key sets, deprecated inputs, exact parsing, and a shared export check
+- [x] All <SdkRepoCount /> SDK repositories run it in CI on their `main` branch, pinned to the docuconf-go commit that has it, and pass every case with none skipped
+- [x] SDK tiers set from that evidence: see [SDK tiers](/languages/#tiers)
+
+In review in docuconf-go, not merged yet:
+
+- [ ] The beta spec decisions: `keySet`, `deprecated` inputs, field tables in the docs model, and answers to the open questions ([#27](https://github.com/Docuconf/docuconf-go/pull/27))
+- [ ] Exact parsing rules and the conformance cases for files, profiles, overlays and export ([#29](https://github.com/Docuconf/docuconf-go/pull/29))
+- [ ] `docuconf diff`, `push` and `pull`, and a GitHub Action for `vet`, `diff` and `docs` ([#28](https://github.com/Docuconf/docuconf-go/pull/28))
+- [ ] The [versioning and deprecation policy](/versioning/), the [security policy](/security/), and signed releases with SBOMs ([#30](https://github.com/Docuconf/docuconf-go/pull/30))
+
+Left:
+
+- [ ] The format freeze: rename `v1alpha1` to `v1beta1` in the meta-schema, the contract's `apiVersion` and the OCI artifact type, and drop the transitional conformance tags
+- [ ] SDK releases that implement `v1beta1`
+
+## Done in v1alpha1
 
 - [x] Draft contract specification (`v1alpha1`)
 - [x] CUE meta-schema with validation, policy, rendering and a test suite
@@ -23,8 +48,6 @@ export const metadata = {
 - [x] Generated docs: `description` and `details` on every input, and a versioned docs model
 - [x] Config-file overlays, such as a mounted `appsettings.Production.json`
 - [x] Language-neutral conformance suite for variables
-- [ ] Conformance cases for file inputs, profiles and overlays
-- [ ] Settle the open questions in the specification
 
 ## Next: the platform
 
@@ -32,7 +55,7 @@ export const metadata = {
 - [x] `docuconf docs`: `CONFIG.md` for developers and `CONFIG.agents.md` for coding and ops agents
 - [x] `docuconf check` and `docuconf exec`: boot checks for programs in a language without an SDK
 - [x] Helm library chart and generated `values.schema.json`
-- [ ] `docuconf diff`, `push` and `pull`
+- [ ] `docuconf diff`, `push` and `pull` (built, in review: [#28](https://github.com/Docuconf/docuconf-go/pull/28))
 - [ ] Crossplane composition function, with readable conditions
 - [ ] An end-to-end demo on a local cluster: one deploy succeeds; one with a bad value is rejected
 

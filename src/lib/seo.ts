@@ -2,25 +2,15 @@
 //
 // SITE_URL is the public origin including any base path. The deploy workflow
 // sets it from GitHub Pages (custom domain or docuconf.github.io/docuconf.dev).
-import {
-	API_VERSION,
-	DURATION_ENCODINGS,
-	FILE_SOURCES,
-	FILE_TYPES,
-	KIND,
-	LIST_ENCODINGS,
-	OUTPUTS,
-	SPEC_VERSION,
-	STATUS_LABEL,
-	VALUE_SOURCES,
-	VAR_TYPES,
-} from './spec-data';
+import { KIND, STATUS_LABEL } from './spec-data';
+import { specData } from '@/content/spec';
 import { GITHUB_ORG, SDK_ROWS } from './sdk-data';
+import { apiVersionOf, CURRENT_SPEC, parseSpecPath, SPEC_PAGES, SPEC_VERSIONS, specPath, specSourceUrl, specVersion } from './spec-versions';
 
 export const SITE_URL = (process.env.SITE_URL || 'https://docuconf.dev').replace(/\/$/, '');
 export const SITE_NAME = 'docuconf';
 export const GITHUB_ORG_URL = GITHUB_ORG;
-export const SPEC_SOURCE_URL = `${GITHUB_ORG}/docuconf-go/blob/main/spec/SPEC.md`;
+export const SPEC_SOURCE_URL = specSourceUrl(CURRENT_SPEC.version);
 export const LICENSE_URL = 'https://opensource.org/license/mit';
 
 /** An absolute URL for a site path such as "/spec/". */
@@ -28,7 +18,8 @@ export const absolute = (path: string) => `${SITE_URL}${path}`;
 
 const ORG_ID = absolute('/#organization');
 const SITE_ID = absolute('/#website');
-const SPEC_ID = absolute('/spec/#specification');
+/** The JSON-LD id of a version's specification: /spec/#specification for the current one. */
+export const specId = (version: string) => absolute(`${specPath(version)}#specification`);
 
 /** The SDKs, as listed in sdk-data.ts. */
 export const SDKS = SDK_ROWS.map((r) => ({ slug: r.slug, name: r.name, language: r.language, repo: r.repo, host: r.host, package: r.package }));
@@ -67,17 +58,21 @@ export function sdkSourceCode() {
 		programmingLanguage: s.language === '.NET' ? 'C#' : s.language,
 		description: `docuconf SDK for ${s.name}, built on ${s.host}. Package: ${s.package}.`,
 		url: absolute(`/languages/${s.slug}/`),
-		isBasedOn: { '@id': SPEC_ID },
+		isBasedOn: { '@id': specId(CURRENT_SPEC.version) },
 		publisher: { '@id': ORG_ID },
 		license: LICENSE_URL,
 	}));
 }
 
-/** The input types and output targets as schema.org DefinedTermSets. */
-export function termSets() {
+/** A version's input types and output targets as schema.org DefinedTermSets. */
+export function termSets(version: string = CURRENT_SPEC.version) {
+	const d = specData(version);
+	const base = specPath(version);
+	const API_VERSION = apiVersionOf(version);
 	const set = (id: string, name: string, description: string, terms: { name: string; description: string }[]) => ({
 		'@type': 'DefinedTermSet',
 		'@id': absolute(id),
+		version,
 		name,
 		description,
 		hasDefinedTerm: terms.map((t) => ({
@@ -89,46 +84,46 @@ export function termSets() {
 	});
 	return [
 		set(
-			'/spec/inputs/#variable-types',
+			`${base}inputs/#variable-types`,
 			'docuconf variable types',
-			`The closed set of environment variable types in ${API_VERSION}.`,
-			VAR_TYPES.map((t) => ({
+			`The environment variable types in ${API_VERSION}.`,
+			d.varTypes.map((t) => ({
 				name: t.type,
 				description: `${t.summary} Constraints: ${t.constraints}. Wire form: ${t.wire}.`,
 			})),
 		),
 		set(
-			'/spec/inputs/#value-sources',
+			`${base}inputs/#value-sources`,
 			'docuconf value sources',
 			'Where a variable’s value may come from.',
-			VALUE_SOURCES.map((s) => ({ name: s.source, description: `Allowed for ${s.allowedFor}; checked ${s.checked}.` })),
+			d.valueSources.map((s) => ({ name: s.source, description: `Allowed for ${s.allowedFor}; checked ${s.checked}.` })),
 		),
 		set(
-			'/spec/inputs/#file-types',
+			`${base}inputs/#file-types`,
 			'docuconf file input types',
 			'Files an application reads, described in the contract.',
-			FILE_TYPES.map((t) => ({ name: t.type, description: `${t.content} Constraints: ${t.constraints}.` })),
+			d.fileTypes.map((t) => ({ name: t.type, description: `${t.content} Constraints: ${t.constraints}.` })),
 		),
 		set(
-			'/spec/inputs/#file-sources',
+			`${base}inputs/#file-sources`,
 			'docuconf file sources',
 			'Where the platform gets each file input.',
-			FILE_SOURCES.map((s) => ({ name: s.source, description: `For ${s.forTypes}. ${s.checkedBeforeDeploy}` })),
+			d.fileSources.map((s) => ({ name: s.source, description: `For ${s.forTypes}. ${s.checkedBeforeDeploy}` })),
 		),
 		set(
-			'/spec/inputs/#encodings',
+			`${base}inputs/#encodings`,
 			'docuconf wire encodings',
 			'How list and duration values are written into environment variables.',
-			[...LIST_ENCODINGS, ...DURATION_ENCODINGS].map((e) => ({
+			[...d.listEncodings, ...d.durationEncodings].map((e) => ({
 				name: e.encoding,
 				description: `Wire form ${e.wire}; native to ${e.nativeTo}.`,
 			})),
 		),
 		set(
-			'/spec/outputs/#targets',
+			`${base}outputs/#targets`,
 			'docuconf generation targets',
 			'Everything generated from a contract, with its status.',
-			OUTPUTS.map((o) => ({
+			d.outputs.map((o) => ({
 				name: o.name,
 				description: `${STATUS_LABEL[o.status]}. ${o.artifact}. Produced by ${o.producedBy}; consumed by ${o.consumedBy}. ${o.notes}`,
 			})),
@@ -136,27 +131,42 @@ export function termSets() {
 	];
 }
 
-export function specification() {
+const WORK_STATUS = { current: 'Published', draft: 'Draft', superseded: 'Obsolete' } as const;
+
+/** One version of the specification, with its status: Published (current), Draft or Obsolete (superseded). */
+export function specification(version: string = CURRENT_SPEC.version) {
+	const v = specVersion(version)!;
 	return {
 		'@type': 'TechArticle',
-		'@id': SPEC_ID,
-		headline: `docuconf core specification (${SPEC_VERSION})`,
+		'@id': specId(version),
+		headline: `docuconf core specification (${version}${v.status === 'current' ? '' : `, ${v.status}`})`,
 		name: 'docuconf configuration contract specification',
-		url: absolute('/spec/'),
-		about: `${KIND} documents, ${API_VERSION}`,
-		version: SPEC_VERSION,
-		isBasedOn: SPEC_SOURCE_URL,
+		url: absolute(specPath(version)),
+		about: `${KIND} documents, ${apiVersionOf(version)}`,
+		version,
+		creativeWorkStatus: WORK_STATUS[v.status],
+		description: v.summary,
+		isBasedOn: specSourceUrl(version),
 		license: LICENSE_URL,
 		publisher: { '@id': ORG_ID },
 		isPartOf: { '@id': SITE_ID },
-		hasPart: ['/spec/inputs/', '/spec/outputs/', '/spec/generated-docs/', '/spec/sdk-requirements/'].map((p) => ({ '@id': absolute(`${p}#article`) })),
+		hasPart: SPEC_PAGES.filter((p) => p.slug).map((p) => ({ '@id': absolute(`${specPath(version, p.slug)}#article`) })),
+		// Every version points at the others, so a reader of a draft can find the current one.
+		...(v.status === 'current' ? {} : { isVariantOf: { '@id': specId(CURRENT_SPEC.version) } }),
 	};
 }
 
 /** JSON-LD for one documentation page: the article and its breadcrumb. */
 export function pageGraph(opts: { path: string; title: string; description: string; extra?: object[] }) {
 	const crumbs = [{ name: 'docuconf', path: '/' }];
-	if (opts.path.startsWith('/spec/') && opts.path !== '/spec/') crumbs.push({ name: 'Specification', path: '/spec/' });
+	const spec = parseSpecPath(opts.path.replace(/\/$/, ''));
+	if (spec) {
+		const base = specPath(spec.version);
+		if (spec.version !== CURRENT_SPEC.version) {
+			crumbs.push({ name: 'Specification', path: '/spec/' });
+			if (spec.slug) crumbs.push({ name: `${spec.version} (${specVersion(spec.version)!.status})`, path: base });
+		} else if (spec.slug) crumbs.push({ name: 'Specification', path: '/spec/' });
+	}
 	if (opts.path.startsWith('/languages/') && opts.path !== '/languages/') crumbs.push({ name: 'Get started', path: '/languages/' });
 	crumbs.push({ name: opts.title, path: opts.path });
 	return {
@@ -171,7 +181,7 @@ export function pageGraph(opts: { path: string; title: string; description: stri
 				inLanguage: 'en',
 				publisher: { '@id': ORG_ID },
 				isPartOf: { '@id': SITE_ID },
-				...(opts.path.startsWith('/spec/') && opts.path !== '/spec/' ? { isPartOf: { '@id': SPEC_ID } } : {}),
+				...(spec && spec.slug ? { isPartOf: { '@id': specId(spec.version) } } : {}),
 			},
 			{
 				'@type': 'BreadcrumbList',
@@ -191,6 +201,6 @@ export function pageGraph(opts: { path: string; title: string; description: stri
 export function siteGraph() {
 	return {
 		'@context': 'https://schema.org',
-		'@graph': [organization(), website(), specification(), ...sdkSourceCode(), ...termSets()],
+		'@graph': [organization(), website(), ...SPEC_VERSIONS.map((v) => specification(v.version)), ...sdkSourceCode(), ...termSets()],
 	};
 }
