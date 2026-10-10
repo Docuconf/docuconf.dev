@@ -4,6 +4,33 @@ All notable changes to the docuconf.dev website are documented here. Entries aft
 [release-please](https://github.com/googleapis/release-please) from Conventional Commit messages; see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## [0.2.0](https://github.com/Docuconf/docuconf.dev/compare/v0.1.0...v0.2.0) (2026-10-10)
+
+
+### Features
+
+* per-SDK Get started pages, generated SDK data, CI-checked snippets, search and a11y ([ccb1b8c](https://github.com/Docuconf/docuconf.dev/commit/ccb1b8cae1ea7cba45077ba1252d7df3b6f93270))
+* show every generated output; document secret rotation ([91e4c6c](https://github.com/Docuconf/docuconf.dev/commit/91e4c6c4c056e0941ec94bcb3ab68c7255c741a2))
+* show every generated output; document secret rotation ([7b754d2](https://github.com/Docuconf/docuconf.dev/commit/7b754d2bac01d9821f5bab73f163254d05b80b78))
+* versioned spec, SDK tiers, versioning and deprecation policy ([24d41a6](https://github.com/Docuconf/docuconf.dev/commit/24d41a67332f3ed5f6af336a503db2a81f7e8339))
+* versioned spec, SDK tiers, versioning and deprecation policy ([56807eb](https://github.com/Docuconf/docuconf.dev/commit/56807ebace79f2c656b8aa3c32d5e87836f3ff56))
+
+
+### Bug Fixes
+
+* **snippets:** COBOL installs the docuconf CLI at caca804, which has keySet ([b66883e](https://github.com/Docuconf/docuconf.dev/commit/b66883eea218f47fd9d959a226f9b9c9e4874b63))
+* **snippets:** drop the Swift test-target step now the example has one ([b252a3e](https://github.com/Docuconf/docuconf.dev/commit/b252a3e825988a843fbb9e8e3274667f386b3579))
+* **snippets:** Go example after docuconf-go[#20](https://github.com/Docuconf/docuconf.dev/issues/20), Gleam 1.18.1 image ([fb2a79d](https://github.com/Docuconf/docuconf.dev/commit/fb2a79db02b183556bcd624d53fbbc8999ad96f6))
+* **snippets:** install docuconf-php over HTTPS in the PHP checks ([d052438](https://github.com/Docuconf/docuconf.dev/commit/d05243815f18100c5147a0468d98ae40e279cc7f))
+* **snippets:** install python3 in the C++ check image ([9f370a5](https://github.com/Docuconf/docuconf.dev/commit/9f370a5824b87aa9993f0d5e3926f91c976a5714))
+
+
+### Documentation
+
+* C++, PHP and COBOL SDKs, length limits, injector annotations and generated docs ([2df6efe](https://github.com/Docuconf/docuconf.dev/commit/2df6efe012e0beba7efa30bfe10cbd5572238c92))
+* C++, PHP and COBOL SDKs, length limits, injector annotations and generated docs ([d5a36c2](https://github.com/Docuconf/docuconf.dev/commit/d5a36c273f36bdc9a87c5fa6c6b3d534fca0081c))
+* match the rotation example to the orders WEBHOOK_KEYS input ([4d33dfb](https://github.com/Docuconf/docuconf.dev/commit/4d33dfb4e492ebfd073fa757855cfb8ca05a36a1))
+
 ## 0.1.0
 
 The site as first launched. It deploys continuously from `main`; versions here are a record of what changed, not
