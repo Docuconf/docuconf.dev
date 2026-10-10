@@ -4,13 +4,16 @@
 // llms.txt, llms-full.txt and the JSON-LD. Adding a language is a new row here plus its snippets/<slug>/ folder.
 //
 // Facts come from each repository's main branch and README (see SDK_DATA_DATE). Conformance results come from
-// each SDK's conformance runner.
+// each SDK's conformance runner; they and reload: watch were rechecked on 2026-10-10. Tiers are in sdk-tiers.ts.
 
 /** When the facts below were last checked against the SDK repositories. */
 export const SDK_DATA_DATE = '2026-10-08';
 
-/** The number of cases in docuconf-go's conformance/cases.json. */
-export const CONFORMANCE_CASES = 134;
+/**
+ * The number of cases in the beta conformance suite (docuconf-go PR #29), which every SDK's CI runs from the
+ * docuconf-go commit it pins. docuconf-go's main branch still has the 134-case v1alpha1 suite.
+ */
+export const CONFORMANCE_CASES = 316;
 
 /** The GitHub organization every SDK repository lives in. */
 export const GITHUB_ORG = 'https://github.com/Docuconf';
@@ -117,7 +120,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'docuconf export -pkg -type',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite, docuconf-go PR #29; main runs the 134-case v1alpha1 suite)',
 		example: { label: 'net/http', path: 'examples/orders' },
 		caveats: ['caarlos0/env parses int as 32-bit, so that range is exported.', 'No TOML config files, no JKS keystores.'],
 		shiki: 'go',
@@ -223,7 +226,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'npx docuconf-t3 export src/env.ts',
-		conformance: '131 of 134 (skips int64, json-schema)',
+		conformance: '316 of 316, none skipped (beta suite)',
 		readme: 'packages/t3/README.md',
 		example: { label: 'T3 Env', path: 'examples/orders-t3' },
 		caveats: [
@@ -304,7 +307,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'npx docuconf-nestjs export src/orders.config.ts',
-		conformance: '131 of 134 (skips int64, json-schema)',
+		conformance: '316 of 316, none skipped (beta suite)',
 		readme: 'packages/nestjs/README.md',
 		example: { label: 'NestJS', path: 'examples/orders-nestjs' },
 		caveats: ['ESM and CommonJS builds; NestJS 11 (CommonJS) and 12 (ESM).', 'int is limited to the safe-integer range.'],
@@ -384,7 +387,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'tls, caBundle, keystore, binary',
 		profiles: 'appsettings.{Environment}.json',
 		export: 'dotnet app.dll docuconf export',
-		conformance: '132 of 134 (skips json-schema)',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'ASP.NET Core', path: 'examples/orders' },
 		caveats: [
 			'Platform-mounted appsettings overlays load through AddDocuconfOverlays<T>().',
@@ -462,7 +465,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: '—',
 		export: 'docuconf export mod:Settings',
-		conformance: '134 of 134 (json-schema with the jsonschema extra)',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'http.server', path: 'examples/orders' },
 		caveats: ['No JKS keystores.', 'No profiles.'],
 		shiki: 'python',
@@ -538,7 +541,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: 'Rails YAML (RAILS_ENV)',
 		export: 'rails docuconf:export',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'Rack', path: 'examples/orders' },
 		caveats: ['Rails credentials must be excluded explicitly.', 'TOML needs the tomlrb gem.'],
 		shiki: 'ruby',
@@ -610,7 +613,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'all file types',
 		profiles: 'application-{profile}.yml',
 		export: 'annotation processor at compile time',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'Spring Boot', path: 'examples/orders' },
 		caveats: ['Several active profiles at once (a,b) are not supported yet.', 'The dev.docuconf Maven namespace is not verified on Maven Central yet.'],
 		shiki: 'java',
@@ -694,12 +697,12 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'iso8601',
 		configFormats: 'json, yaml, toml',
 		keystore: 'PKCS#12, JKS',
-		watch: 'not offered',
+		watch: 'file inputs declared Watched<…>; not overlays',
 		profiles: '—',
 		export: 'Gradle plugin: docuconfExport',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'JDK HttpServer', path: 'examples/orders' },
-		caveats: ['JVM target only so far; the core module is Kotlin Multiplatform-ready.', 'No reload: watch.'],
+		caveats: ['JVM target only so far; the core module is Kotlin Multiplatform-ready.', 'Overlays are read once: reload: watch is rejected on an overlay.'],
 		shiki: 'kotlin',
 		summary:
 			'You keep writing a Hoplite data class. docuconf adds annotations for descriptions, bounds, URL schemes and file inputs, checks every variable and file before Hoplite binds the class, and exports the contract.',
@@ -784,12 +787,12 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'go',
 		configFormats: 'json, yaml, toml',
 		keystore: 'PKCS#12',
-		watch: 'rejected at declaration',
+		watch: 'file inputs declared Watched<T>; not overlays',
 		profiles: 'figment profiles',
 		export: 'docuconf::export()',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'std::net', path: 'examples/orders' },
-		caveats: ['No reload: watch.', 'No JKS keystores.'],
+		caveats: ['reload: watch is not offered on overlays.', 'No JKS keystores.'],
 		shiki: 'rust',
 		summary:
 			'Keep your `#[derive(Deserialize)]` config struct and add `#[derive(Docuconf)]`. Doc comments are the descriptions, the Rust type picks the contract type, and figment\'s files and profiles become the contract\'s defaults and profiles.',
@@ -865,7 +868,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'when the app consumes changes',
 		profiles: '—',
 		export: 'app docuconf-export',
-		conformance: '132 of 134 (skips json-schema)',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'POSIX sockets', path: 'Examples/Orders' },
 		caveats: ['Built and tested on Linux; macOS and iOS builds are untested.', 'No TOML, no profiles.'],
 		shiki: 'swift',
@@ -940,7 +943,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'with Docuconf.Watcher',
 		profiles: '—',
 		export: 'mix docuconf.export',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: ':httpd', path: 'examples/orders' },
 		caveats: ['Watched files reload only while the app supervises Docuconf.Watcher.'],
 		shiki: 'elixir',
@@ -1009,14 +1012,14 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'go',
 		configFormats: 'json (others via a parser)',
 		keystore: 'format check only',
-		watch: 'not offered',
+		watch: 'in a declaration; not in contract-first mode',
 		profiles: '—',
 		export: 'docuconf.write_contract()',
-		conformance: '132 of 134 on Erlang, 131 on JavaScript (skips json-schema; int64 on JavaScript)',
+		conformance: '316 of 316 on Erlang and JavaScript, none skipped (beta suite)',
 		example: { label: 'wisp', path: 'examples/orders' },
 		caveats: [
 			'Keystores are not opened with their password yet.',
-			'On the JavaScript target, integers beyond 2^53 lose precision.',
+			'On the JavaScript target an int holds ±(2^53 − 1); BigIntValue holds the full 64-bit range.',
 			'The Hex package is `docuconf_gleam`: `docuconf` is the Elixir SDK\'s.',
 		],
 		shiki: 'gleam',
@@ -1087,12 +1090,12 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'go',
 		configFormats: 'json, yaml, toml',
 		keystore: 'PKCS#12, JKS (integrity check)',
-		watch: 'rejected at declaration',
+		watch: 'file inputs bound to Watched<T>',
 		profiles: '—',
 		export: 'app --docuconf-export',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'cpp-httplib', path: 'examples/orders' },
-		caveats: ['No reload: watch.', 'No profiles or config-file overlays.', 'JKS keystores are checked by their integrity digest; their entries are not parsed.'],
+		caveats: ['No profiles or config-file overlays in the declaration; contract-first mode reads both.', 'JKS keystores are checked by their integrity digest; their entries are not parsed.'],
 		shiki: 'cpp',
 		summary:
 			'You keep your CLI11 app. docuconf adds a `Declaration` next to it: `add_var` binds each environment variable to a C++ variable, the C++ type picks the contract type, and the app exports its own contract with `--docuconf-export`.',
@@ -1169,14 +1172,14 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'go',
 		configFormats: 'json, yaml, toml',
 		keystore: 'PKCS#12, JKS (integrity check)',
-		watch: 'rejected at declaration',
+		watch: 'file inputs; not overlays',
 		profiles: '—',
 		export: 'php artisan docuconf:export',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'Laravel', path: 'examples/orders' },
 		caveats: [
 			'No profiles or config-file overlays.',
-			'No reload: watch.',
+			'No reload: watch on overlays.',
 			'Run php artisan config:cache when the container starts, not in the image build.',
 		],
 		shiki: 'php',
@@ -1250,12 +1253,12 @@ export const SDK_ROWS: SdkRow[] = [
 		durations: 'go',
 		configFormats: 'json, yaml, toml',
 		keystore: 'PKCS#12, JKS (integrity check)',
-		watch: 'rejected at declaration',
+		watch: 'file inputs; not overlays',
 		profiles: '—',
 		export: 'bin/console docuconf:export',
-		conformance: '134 of 134',
+		conformance: '316 of 316, none skipped (beta suite)',
 		example: { label: 'Symfony', path: 'examples/orders-symfony' },
-		caveats: ['No profiles or config-file overlays.', 'No reload: watch.', 'No Flex recipe yet: register the bundle by hand.'],
+		caveats: ['No profiles or config-file overlays.', 'No reload: watch on overlays.', 'No Flex recipe yet: register the bundle by hand.'],
 		shiki: 'php',
 		summary:
 			'Declare the variables in `config/packages/docuconf.yaml`, written as in the contract, and read them with the `docuconf` env processor instead of `int:` and `bool:`, or from the `Docuconf\\Values` service. The kernel checks them all at boot.',
@@ -1337,7 +1340,7 @@ export const SDK_ROWS: SdkRow[] = [
 		watch: 'not offered',
 		profiles: '—',
 		export: 'docuconf-cobol generate',
-		conformance: '134 of 134 (loader under docuconf exec)',
+		conformance: '316 of 316 under docuconf exec, none skipped (beta suite)',
 		example: { label: 'batch job', path: 'examples/orders' },
 		caveats: [
 			'Patterns, URL schemes, JSON Schemas and file contents are checked by docuconf exec, not by the loader.',

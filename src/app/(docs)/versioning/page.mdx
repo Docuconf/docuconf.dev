@@ -1,0 +1,89 @@
+import { Callout } from '@/components/callout';
+import { JsonLd } from '@/components/spec-tables';
+import { SpecVersionsTable } from '@/components/spec-version';
+import { pageGraph } from '@/lib/seo';
+export const metadata = {
+	title: 'Versioning and deprecation',
+	description:
+		'What each docuconf spec version promises (v1alpha1, v1beta1, v1), how SDK, CLI and Helm chart releases are versioned, how fields and APIs are deprecated and removed, the move from v1alpha1 to v1beta1, and which releases get fixes.',
+	alternates: { canonical: '/versioning/' },
+};
+
+<JsonLd data={pageGraph({ path: '/versioning/', title: metadata.title, description: metadata.description })} />
+
+# Versioning and deprecation
+
+docuconf has two kinds of version. The **spec version** is a contract's `apiVersion`, and says which rules the contract follows. The **release version** of each tool (an SDK, the CLI, the Helm chart) is semver, and says what changed in that tool. This page covers what each one promises, and how anything is removed.
+
+<Callout title="Proposed policy">
+This policy is proposed in docuconf-go [pull request #30](https://github.com/Docuconf/docuconf-go/pull/30), which is not merged yet. The source is [docs/VERSIONING.md](https://github.com/Docuconf/docuconf-go/blob/claude/beta-hygiene/docs/VERSIONING.md) on that branch.
+</Callout>
+
+<h2 id="spec-versions">Spec versions</h2>
+
+A contract names the spec version it is written against:
+
+```cue
+apiVersion: "docuconf.dev/v1alpha1"
+```
+
+The spec goes through three stages, and each makes a stronger promise than the last:
+
+| Stage | `apiVersion` | Promise |
+|---|---|---|
+| Alpha | `docuconf.dev/v1alpha1` | Fields, types and rules may change in any release. |
+| Beta | `docuconf.dev/v1beta1` | Additive only: nothing is removed or renamed, and no rule gets stricter. |
+| Stable | `docuconf.dev/v1` | Stable. A breaking change needs a new major `apiVersion`, `v2`. |
+
+The docs model (`docs.docuconf.dev/...`) follows the same stages. The versions documented on this site:
+
+<SpecVersionsTable />
+
+<h3 id="beta-promise">What beta promises a contract</h3>
+
+For as long as `v1beta1` is the version:
+
+- **A contract that validates keeps validating.** A new spec release does not reject a contract or a values file that the previous release accepted, and a contract keeps its meaning.
+- **New fields are optional.** A field added to the meta-schema has a default that keeps today's behaviour, so leaving it out never changes how a contract renders or is checked.
+- **New things are additions.** A new type, format or source kind can be added. A tool that does not know it reports an unknown value instead of guessing, and the conformance suite tags its cases so older SDKs skip them.
+- **Removals wait for the next stage.** A field can be deprecated during beta, but it is removed only in `v1`.
+
+"Additive only" is about the contract format. A tool can still add warnings, and can still fix a bug where it accepted something the spec already forbade.
+
+<h2 id="releases">Release versions</h2>
+
+Every SDK, the CLI and the Helm chart follow [semver](https://semver.org/).
+
+- **SDKs stay `0.x` during beta.** An SDK reaches 1.0 only once the spec is at `v1`. Within `0.x`, a minor release (`0.3.0` to `0.4.0`) may change the SDK's own API, under the deprecation rule below; a patch release never does.
+- **Each SDK's README states the spec version it implements**, such as "implements spec `v1beta1`": the newest `apiVersion` it reads, and the one its export writes. An SDK that implements `v1beta1` still reads `v1alpha1` contracts for as long as the migration allows.
+- **The CLI, the Helm chart and the meta-schema move together.** Their release notes say which spec versions they validate, and a release of each supports the same ones.
+- **The numbers are independent.** A spec change ships in new releases of the tools; it does not reset or align their version numbers.
+
+<h2 id="deprecation">How things are deprecated and removed</h2>
+
+The same rule covers a **field of the contract format** (a field of a variable or a file input in the meta-schema) and a **public API** (an SDK function, type, option or struct tag, or a CLI flag or command):
+
+1. **Deprecated first, for at least one minor release.** The spec, the meta-schema's comments and the SDK's API docs say so and name the replacement (in Go, a `// Deprecated:` comment), and the release notes list it.
+2. **A warning whenever it is used.** `docuconf vet`, `docuconf diff` and the SDKs warn when a contract uses a deprecated field. A deprecated SDK API warns through the language's own mechanism, such as `staticcheck` and editors for Go's `// Deprecated:`. A deprecated CLI flag prints a warning on stderr.
+3. **Removed only at the next spec stage.** A field deprecated in `v1beta1` stays valid for all of `v1beta1` and goes in `v1`. An SDK API deprecated during beta is removed no earlier than the SDK release that implements the next spec stage, and never in a patch release.
+
+This is about docuconf's own format and tools. Retiring one of **your** variables or files is a different feature: mark it [`deprecated`](/spec/v1beta1/inputs/#deprecated) in your contract, and the platform gets a warning while it still sets it. `docuconf diff` then reports the removal as breaking only for a platform that ignored the warning.
+
+<h2 id="migration">Moving from v1alpha1 to v1beta1</h2>
+
+For a `v1alpha1` contract, the only planned change is the `apiVersion`:
+
+```diff
+-apiVersion: "docuconf.dev/v1alpha1"
++apiVersion: "docuconf.dev/v1beta1"
+```
+
+Nothing else in the contract, the values files or the file sources should have to change. An exported contract gets the new `apiVersion` when its SDK is upgraded to a release that implements `v1beta1`; a contract written by hand is edited by hand.
+
+<Callout title="Not yet">
+This is provisional. The pull request that freezes `v1beta1` will confirm it, and will list any other change the freeze needs. Until then, keep contracts on `v1alpha1`. The [`v1beta1` draft](/spec/v1beta1/) shows what is planned.
+</Callout>
+
+<h2 id="support">Which releases get fixes</h2>
+
+Security fixes go to the latest minor release of each tool (the CLI and its image, the Go SDK, the Helm chart), as a new patch release. **During the beta, only the latest release of each tool is supported**: upgrade to it to get a fix. The other SDKs live in their own repositories and follow their own policies. How to report a vulnerability is on [Security](/security/).

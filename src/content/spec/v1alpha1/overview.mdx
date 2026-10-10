@@ -1,22 +1,11 @@
 import { Callout } from '@/components/callout';
-import { Faq, JsonLd, OutputsTable, faqJsonLd } from '@/components/spec-tables';
-import { pageGraph, specification } from '@/lib/seo';
+import { Faq, OutputsTable } from '@/components/spec-tables';
 
 export const metadata = {
 	title: 'Core specification',
 	description:
 		'The docuconf ConfigContract (docuconf.dev/v1alpha1): every input an app can declare, everything generated from it, and what each language SDK must support.',
-	alternates: { canonical: '/spec/' },
 };
-
-<JsonLd
-	data={pageGraph({
-		path: '/spec/',
-		title: 'docuconf core specification',
-		description: metadata.description,
-		extra: [specification(), faqJsonLd()],
-	})}
-/>
 
 # Core specification
 
@@ -31,8 +20,8 @@ This specification has four parts:
 | [Generated docs](/spec/generated-docs/) | Where each input's description and details come from, and how `docuconf docs` turns the contract into `CONFIG.md` for developers and `CONFIG.agents.md` for agents. |
 | [SDK requirements](/spec/sdk-requirements/) | What every language SDK must support to conform, the boot-time error codes, and where each SDK stands today. |
 
-<Callout title="Status: v1alpha1">
-Fields may still change. The normative text is [SPEC.md](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md), with its CUE meta-schema in `spec/cue`. These pages summarise it, and mark each item as **Implemented**, **Specified, not built**, or **Planned**.
+<Callout title="Status: v1alpha1, the current version">
+Fields may still change. The normative text is [SPEC.md](https://github.com/Docuconf/docuconf-go/blob/main/spec/SPEC.md), with its CUE meta-schema in `spec/cue`. These pages summarise it, and mark each item as **Implemented**, **Specified, not built**, or **Planned**. The next version, `v1beta1`, is a [draft](/spec/v1beta1/); what each stage promises is on [Versioning and deprecation](/versioning/).
 </Callout>
 
 ## One contract, three checks

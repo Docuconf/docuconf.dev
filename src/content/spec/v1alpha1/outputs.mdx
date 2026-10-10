@@ -1,22 +1,11 @@
 import { Callout } from '@/components/callout';
-import { JsonLd, OutputDetails, OutputsTable } from '@/components/spec-tables';
-import { pageGraph, termSets } from '@/lib/seo';
+import { OutputDetails, OutputsTable } from '@/components/spec-tables';
 
 export const metadata = {
 	title: 'Outputs: everything generated from a contract',
 	description:
 		'Every docuconf generation target: contract.cue and contract.json, validation reports, pod env, volumes and injector annotations, Helm values.schema.json and library chart, config-file overlays, generated docs, boot reports, and the OCI, Crossplane, Knative, OpenAPI, admission-policy and KCL targets on the roadmap.',
-	alternates: { canonical: '/spec/outputs/' },
 };
-
-<JsonLd
-	data={pageGraph({
-		path: '/spec/outputs/',
-		title: 'docuconf outputs',
-		description: metadata.description,
-		extra: termSets().filter((t) => t['@id'].includes('/spec/outputs/')),
-	})}
-/>
 
 # Outputs
 

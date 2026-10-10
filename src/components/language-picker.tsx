@@ -1,6 +1,8 @@
 // A card per SDK, linking to its Get started page. Used on /languages/ and the homepage.
 import Link from 'next/link';
 import { conformanceShort, SDK_ROWS } from '@/lib/sdk-data';
+import { SDK_TIERS } from '@/lib/sdk-tiers';
+import { TierBadge } from './sdk-tiers';
 
 export function LanguagePicker({ compact = false }: { compact?: boolean }) {
 	if (compact) {
@@ -27,7 +29,10 @@ export function LanguagePicker({ compact = false }: { compact?: boolean }) {
 						href={`/languages/${r.slug}/`}
 						className="block h-full rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:border-accent"
 					>
-						<span className="font-semibold">{r.name}</span>
+						<span className="flex items-start justify-between gap-2">
+							<span className="font-semibold">{r.name}</span>
+							{SDK_TIERS[r.slug] && <TierBadge tier={SDK_TIERS[r.slug].tier} />}
+						</span>
 						<span className="mt-0.5 block text-sm text-muted">on {r.host}</span>
 						<span className="mt-1 block text-xs text-muted">conformance {conformanceShort(r)}</span>
 					</Link>

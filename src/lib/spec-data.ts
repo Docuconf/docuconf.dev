@@ -3,6 +3,8 @@
 // it too, so what answer engines read is exactly what people read.
 //
 // Source of truth: SPEC.md in docuconf/docuconf-go (v1alpha1). Keep in sync.
+// This module is v1alpha1's data. Other versions build theirs from it in src/content/spec/<version>/data.ts
+// (see src/lib/spec-versions.ts), and the table components take a version's data as their `spec` prop.
 
 import { LANGUAGES } from './sdk-data';
 
@@ -647,3 +649,47 @@ export const SPEC_FAQ: { q: string; a: string }[] = [
 		a: 'No. docuconf covers configuration that changes only with a rollout. Flags that change at runtime per user or request belong in OpenFeature; only the flag provider’s bootstrap settings belong in the contract.',
 	},
 ];
+
+// ---------------------------------------------------------------------------
+// One version's data, as the table components, llms-full.txt and the JSON-LD read it
+// ---------------------------------------------------------------------------
+
+export type SpecData = {
+	version: string;
+	apiVersion: string;
+	varTypes: VarType[];
+	varFields: { field: string; rule: string }[];
+	valueSources: ValueSource[];
+	injectors: typeof INJECTORS;
+	overlayHosts: typeof OVERLAY_HOSTS;
+	fileTypes: FileType[];
+	fileFields: { field: string; rule: string }[];
+	fileSources: FileSource[];
+	listEncodings: typeof LIST_ENCODINGS;
+	durationEncodings: typeof DURATION_ENCODINGS;
+	outputs: Output[];
+	sdkMusts: { title: string; detail: string }[];
+	sdkShoulds: { title: string; detail: string }[];
+	errorCodes: { code: string; meaning: string }[];
+	faq: { q: string; a: string }[];
+};
+
+export const V1ALPHA1: SpecData = {
+	version: SPEC_VERSION,
+	apiVersion: API_VERSION,
+	varTypes: VAR_TYPES,
+	varFields: VAR_FIELDS,
+	valueSources: VALUE_SOURCES,
+	injectors: INJECTORS,
+	overlayHosts: OVERLAY_HOSTS,
+	fileTypes: FILE_TYPES,
+	fileFields: FILE_FIELDS,
+	fileSources: FILE_SOURCES,
+	listEncodings: LIST_ENCODINGS,
+	durationEncodings: DURATION_ENCODINGS,
+	outputs: OUTPUTS,
+	sdkMusts: SDK_MUSTS,
+	sdkShoulds: SDK_SHOULDS,
+	errorCodes: ERROR_CODES,
+	faq: SPEC_FAQ,
+};

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { Callout } from '@/components/callout';
 import { Code } from '@/components/code';
 import { Inline } from '@/components/inline';
+import { SdkTier } from '@/components/sdk-tiers';
 import { JsonLd } from '@/components/spec-tables';
 import { GITHUB_ORG, repoPath, SDK_DATA_DATE, SDK_ROWS, sdkStatus, type SdkRow, type Step } from '@/lib/sdk-data';
 import { pageGraph } from '@/lib/seo';
@@ -88,6 +89,10 @@ export default async function GetStarted({ params }: Props) {
 				<dd>{row.runtime}</dd>
 				<dt className="font-semibold">Status</dt>
 				<dd>{sdkStatus(row)}</dd>
+				<dt className="font-semibold">Tier</dt>
+				<dd>
+					<SdkTier slug={row.slug} />
+				</dd>
 				<dt className="font-semibold">Source</dt>
 				<dd>
 					<a href={repo} className="text-accent underline">

@@ -3,6 +3,8 @@
 import { EXAMPLE_CONFIG, readmeRaw, repoPath, SDK_ROWS, type SdkRow } from './sdk-data';
 import { plain } from './text';
 import { absolute, SPEC_SOURCE_URL } from './seo';
+import { SDK_TIERS, TIER_LABEL, TIERS } from './sdk-tiers';
+import { apiVersionOf, CURRENT_SPEC, prUrl, SPEC_PAGES, SPEC_VERSIONS, specPath, specSourceUrl } from './spec-versions';
 import {
 	API_VERSION,
 	DURATION_ENCODINGS,
@@ -33,10 +35,25 @@ export function installCommand(row: SdkRow): string {
 	return lines.join(' && ');
 }
 
+/** "Tier 1", or "Tier 2 (gap: ...)". */
+const tierText = (r: SdkRow) => {
+	const t = SDK_TIERS[r.slug];
+	return t ? `${TIER_LABEL[t.tier]}${t.gaps.length ? ` (gap: ${t.gaps.join(' ')})` : ''}` : '';
+};
+
+/** Every spec version, one line each: which is current, which is a draft. */
+const versionLines = () =>
+	SPEC_VERSIONS.map(
+		(v) =>
+			`- ${v.version} (apiVersion ${apiVersionOf(v.version)}), ${v.status.toUpperCase()}: ${absolute(specPath(v.version))}. ${v.summary}${
+				v.prs?.length ? ` Not final: from docuconf-go pull requests ${v.prs.map((n) => `#${n}`).join(', ')}, not merged.` : ''
+			} Source: ${specSourceUrl(v.version)}`,
+	).join('\n');
+
 const sdkLine = (r: SdkRow) => {
 	const install = installCommand(r);
 	const files = r.guide.install.files?.length ? ` plus the ${r.guide.install.files.map((f) => f.title).join(' and ')} lines on the page` : '';
-	return `- [docuconf for ${r.name}](${absolute(`/languages/${r.slug}/`)}): on ${r.host}. Install: \`${install}\`${files}. [README](${readmeRaw(r)}), [orders example](${repoPath(r.repo, r.example.path)}). ${plain(r.summary)}`;
+	return `- [docuconf for ${r.name}](${absolute(`/languages/${r.slug}/`)}): ${tierText(r)}, on ${r.host}. Install: \`${install}\`${files}. [README](${readmeRaw(r)}), [orders example](${repoPath(r.repo, r.example.path)}). ${plain(r.summary)}`;
 };
 
 export function llmsTxt(): string {
@@ -48,17 +65,22 @@ docuconf covers environment variables (9 types), file inputs (config files, TLS 
 
 ## Specification
 
+The current version is ${CURRENT_SPEC.version}: write contracts with apiVersion ${apiVersionOf(CURRENT_SPEC.version)}. /spec/ always serves the current version; /spec/<version>/ serves any version.
+
+${versionLines()}
+
 - [Core specification](${absolute('/spec/')}): overview, the three checks, FAQ
 - [Inputs](${absolute('/spec/inputs/')}): variable types, value sources, injection, file types and sources, secret rotation, overlays, wire encodings, profiles
 - [Outputs](${absolute('/spec/outputs/')}): every generation target and its status
 - [Generated docs](${absolute('/spec/generated-docs/')}): description and details, the docs model, \`docuconf docs\`, CONFIG.md for developers and CONFIG.agents.md for agents, and where each SDK takes the text from
 - [SDK requirements](${absolute('/spec/sdk-requirements/')}): what every language SDK must support, error codes, SDK status
-- [Full specification as plain text](${absolute('/llms-full.txt')})
+- [Versioning and deprecation](${absolute('/versioning/')}): what alpha, beta and stable promise, release versions, how fields and APIs are deprecated, the move to v1beta1
+- [Full specification as plain text](${absolute('/llms-full.txt')}): the current version, ${CURRENT_SPEC.version}
 - [Normative SPEC.md](${SPEC_SOURCE_URL})
 
 ## Get started
 
-- [Get started: pick a language](${absolute('/languages/')})
+- [Get started: pick a language](${absolute('/languages/')}), with the SDK tiers and their criteria (${absolute('/languages/#tiers')})
 - [Example apps](${absolute('/examples/')}): the same "orders" service in every SDK, side by side
 
 No SDK is on a package registry yet (all are v0.1 alphas), so each installs from its main branch. Each line: the Get started page (install, declare, boot error, test, export), the install command, the raw README and the example's declaration.
@@ -72,6 +94,7 @@ ${SDK_ROWS.map(sdkLine).join('\n')}
 - [Config is not feature flags](${absolute('/feature-flags/')})
 - [Roadmap](${absolute('/roadmap/')})
 - [Get involved](${absolute('/community/')})
+- [Security](${absolute('/security/')}): report vulnerabilities through GitHub private vulnerability reporting
 
 ## Optional
 
@@ -87,7 +110,11 @@ export function llmsFullTxt(): string {
 
 > ${SUMMARY}
 
+Version: ${CURRENT_SPEC.version}, the current version. This file describes it; the draft below is not final.
 Source: ${absolute('/spec/')} — normative text: ${SPEC_SOURCE_URL}
+Versions:
+${versionLines()}
+Versioning and deprecation policy: ${absolute('/versioning/')}
 Status labels: Implemented (works today), Specified, not built (in the spec), Planned (roadmap).
 
 ## Inputs
@@ -187,8 +214,39 @@ ${SDK_ROWS.map((r) => `- ${r.name} (${r.example.label}): ${repoPath(r.repo, r.ex
 
 ${SDK_ROWS.map((r) => `- ${r.name}: \`${installCommand(r)}\`; after the first release: \`${r.guide.install.registry}\`. Guide: ${absolute(`/languages/${r.slug}/`)}`).join('\n')}
 
+### SDK tiers
+
+${TIERS.map((t) => `- ${t.label}: ${t.criteria.join('; ')}.`).join('\n')}
+
+${table(['SDK', 'Tier', 'Gap', 'Evidence'], SDK_ROWS.map((r) => {
+	const t = SDK_TIERS[r.slug];
+	return [r.name, t ? TIER_LABEL[t.tier] : '', t?.gaps.join(' ') || '—', t?.evidence ?? ''];
+}))}
+
+## Draft: v1beta1 (not final)
+
+${draftSection()}
+
 ## FAQ
 
 ${SPEC_FAQ.map((f) => `### ${f.q}\n\n${f.a}`).join('\n\n')}
 `;
+}
+
+/** What the draft versions change, for llms-full.txt. */
+function draftSection(): string {
+	return SPEC_VERSIONS.filter((v) => v.status === 'draft')
+		.map(
+			(v) => `${v.version} (apiVersion ${apiVersionOf(v.version)}) is a draft: it does not exist yet, and contracts stay on ${CURRENT_SPEC.version} until the format freeze. Pages: ${SPEC_PAGES.map((p) => absolute(specPath(v.version, p.slug))).join(', ')}. Pull requests: ${(v.prs ?? []).map(prUrl).join(', ')}.
+
+Planned changes from ${CURRENT_SPEC.version}:
+- keySet: a secret variable type for keys that are valid at once (minKeys, maxKeys, keyMinLength, keyMaxLength), for rotating a webhook or API key without an outage.
+- deprecated inputs: {message, replacedBy?} on a variable or file; the platform gets a warning (deprecatedSet), never an error, and SDKs warn at boot. A required input cannot be deprecated.
+- Exact parsing: one rule per type, whatever the host accepts. Values are never trimmed; bool is true or false in any case; int is base 10; floats reject inf, NaN, hex and .5.
+- Field tables: the docs model turns a JSON Schema into a table of fields; every key set gets the rotation steps.
+- The conformance suite covers files, profiles, overlays, key sets, deprecated inputs and strict parsing, and checks every SDK's export against one golden contract. Only int64 and json-schema may be skipped.
+- docuconf diff classifies contract changes (compatible, notable, breaking-platform, breaking); docuconf push and pull ship a contract as an OCI artifact referring to the image digest.
+- Migration: for a ${CURRENT_SPEC.version} contract, only apiVersion changes. Once out, ${v.version} is additive only.`,
+		)
+		.join('\n\n');
 }

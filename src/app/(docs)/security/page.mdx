@@ -1,0 +1,35 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
+export const metadata = {
+	title: 'Security',
+	description: 'How to report a vulnerability in docuconf privately, what to include, and which releases get security fixes.',
+	alternates: { canonical: '/security/' },
+};
+
+<JsonLd data={pageGraph({ path: '/security/', title: metadata.title, description: metadata.description })} />
+
+# Security
+
+docuconf handles secrets by reference and promises never to print one, so a bug that leaks a value, or a contract that passes validation when it should not, is a security issue.
+
+## Reporting a vulnerability
+
+Report it **privately**, through GitHub's private vulnerability reporting: open the repository's **Security** tab and choose **Report a vulnerability**. For the CLI, the Go SDK, the Helm chart or the meta-schema, that is [docuconf-go](https://github.com/Docuconf/docuconf-go/security/advisories/new). Please do not open a public issue, pull request or discussion about a suspected vulnerability.
+
+Include what you can of:
+
+- the affected component and version: the CLI version or image digest, the SDK module version, the chart version;
+- what an attacker can do, and what they need first;
+- the steps, or a minimal contract, values file or program, that reproduce it.
+
+The fix is prepared in a private security advisory, which credits you unless you prefer otherwise and is published once a fixed release is out. Reports are acknowledged within 3 business days.
+
+## Supported versions
+
+Security fixes go to the latest minor release of each tool, as a new patch release. **During the beta, only the latest release is supported**: upgrade to it to get a fix. Release artifacts are signed, and docuconf-go's RELEASING.md shows how to verify them. See [Versioning and deprecation](/versioning/#support).
+
+## Scope
+
+In scope for docuconf-go: the `docuconf` CLI and its container image, the Go SDK, the Helm library chart, and the CUE meta-schema, for example a contract that passes validation but should not, or rendering that leaks a value marked `secret`. The example apps, dependency vulnerabilities that docuconf does not make reachable, and problems that only arise from a cluster's own misconfiguration are out of scope. Each other SDK lives in its own repository and follows its own policy.
+
+This policy is proposed in docuconf-go [pull request #30](https://github.com/Docuconf/docuconf-go/pull/30) as [SECURITY.md](https://github.com/Docuconf/docuconf-go/blob/claude/beta-hygiene/SECURITY.md), not merged yet.
