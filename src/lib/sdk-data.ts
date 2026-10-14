@@ -280,8 +280,8 @@ export const SDK_ROWS: SdkRow[] = [
 			{
 				id: 'install',
 				cwd: '@install',
-				run: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js && (cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/t3) && npm install ../docuconf-js/docuconf-core-0.1.0.tgz ../docuconf-js/docuconf-t3-0.1.0.tgz @t3-oss/env-core zod && node env.ts',
-				show: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js\n(cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/t3)\nnpm install ../docuconf-js/docuconf-core-0.1.0.tgz ../docuconf-js/docuconf-t3-0.1.0.tgz @t3-oss/env-core zod',
+				run: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js && (cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/t3) && npm install ../docuconf-js/docuconf-core-*.tgz ../docuconf-js/docuconf-t3-*.tgz @t3-oss/env-core zod && node env.ts',
+				show: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js\n(cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/t3)\nnpm install ../docuconf-js/docuconf-core-*.tgz ../docuconf-js/docuconf-t3-*.tgz @t3-oss/env-core zod',
 			},
 			{ id: 'build', cwd: '.', run: 'npm ci && npm run build && npm rebuild --ignore-scripts' },
 			{ id: 'test', cwd: 'examples/orders-t3', run: 'node --test src/env.test.ts' },
@@ -360,8 +360,8 @@ export const SDK_ROWS: SdkRow[] = [
 			{
 				id: 'install',
 				cwd: '@install',
-				run: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js && (cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/nestjs) && npm install ../docuconf-js/docuconf-core-0.1.0.tgz ../docuconf-js/docuconf-nestjs-0.1.0.tgz @nestjs/config class-validator class-transformer && node check.mjs',
-				show: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js\n(cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/nestjs)\nnpm install ../docuconf-js/docuconf-core-0.1.0.tgz ../docuconf-js/docuconf-nestjs-0.1.0.tgz @nestjs/config class-validator class-transformer',
+				run: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js && (cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/nestjs) && npm install ../docuconf-js/docuconf-core-*.tgz ../docuconf-js/docuconf-nestjs-*.tgz @nestjs/config class-validator class-transformer && node check.mjs',
+				show: 'git clone https://github.com/Docuconf/docuconf-js ../docuconf-js\n(cd ../docuconf-js && npm ci && npm run build && npm pack -w @docuconf/core -w @docuconf/nestjs)\nnpm install ../docuconf-js/docuconf-core-*.tgz ../docuconf-js/docuconf-nestjs-*.tgz @nestjs/config class-validator class-transformer',
 			},
 			{ id: 'build', cwd: '.', run: 'npm ci && npm run build && npm rebuild --ignore-scripts' },
 			{ id: 'test', cwd: 'examples/orders-nestjs', run: 'node --test dist/orders.config.test.js' },
