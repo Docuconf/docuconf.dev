@@ -58,6 +58,15 @@ const lineMatches = (want: string, got: string) =>
 		? new RegExp(`^${want.split('…').map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')}$`).test(got)
 		: want === got;
 
+/**
+ * A copy compared with the SDK's file, with metadata.generator.version masked in contracts and docs models: it is
+ * the SDK version, which each SDK's release PR bumps, and the SDKs' own generated-file checks ignore it too.
+ */
+function comparable(path: string, text: string): string {
+	if (!/\.(cue|json)$/.test(path)) return text;
+	return text.replace(/("?generator"?\s*:\s*\{[^{}]*?\bversion"?\s*:\s*)"[^"]*"/g, '$1"<generator-version>"');
+}
+
 /** Whether `actual` contains each "..."-separated block of `expected`, in order. */
 function matches(expected: string[], actual: string[]): boolean {
 	const blocks: string[][] = [[]];
@@ -156,7 +165,7 @@ function check(row: SdkRow) {
 			const real = join(sdk!, path);
 			if (!existsSync(real)) {
 				problems.push(`${path}: not in the SDK repository (${stage})`);
-			} else if (readFileSync(real, 'utf8') !== readFileSync(copy, 'utf8')) {
+			} else if (comparable(path, readFileSync(real, 'utf8')) !== comparable(path, readFileSync(copy, 'utf8'))) {
 				if (update) writeFileSync(copy, readFileSync(real, 'utf8'));
 				else problems.push(`${path}: the site's copy differs from the SDK's (${stage}); run with --update`);
 			}

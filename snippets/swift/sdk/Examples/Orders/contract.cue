@@ -8,7 +8,7 @@ contract.#Contract & {
 	kind: "ConfigContract"
 	metadata: {
 		name: "orders"
-		generator: {language: "swift", sdk: "docuconf-swift", version: "0.2.0"}
+		generator: {language: "swift", sdk: "docuconf-swift", version: "0.1.0"}
 	}
 	vars: {
 		ALLOWED_ORIGINS: {
