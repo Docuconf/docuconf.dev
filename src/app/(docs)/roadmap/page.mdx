@@ -55,6 +55,8 @@ Left:
 - [x] `docuconf docs`: `CONFIG.md` for developers and `CONFIG.agents.md` for coding and ops agents
 - [x] `docuconf check` and `docuconf exec`: boot checks for programs in a language without an SDK
 - [x] Helm library chart and generated `values.schema.json`
+- [x] Terraform and OpenTofu on Kubernetes: `docuconf terraform` generates a module that types and checks every input, and `docuconf lint terraform` checks the plan ([guide](/terraform/))
+- [ ] Terraform for ECS, Cloud Run and Container Apps, and Pulumi components ([spec/IAC.md](https://github.com/Docuconf/docuconf-go/blob/main/spec/IAC.md))
 - [ ] `docuconf diff`, `push` and `pull` (built, in review: [#28](https://github.com/Docuconf/docuconf-go/pull/28))
 - [ ] Crossplane composition function, with readable conditions
 - [ ] An end-to-end demo on a local cluster: one deploy succeeds; one with a bad value is rejected

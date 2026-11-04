@@ -1,0 +1,112 @@
+import { JsonLd } from '@/components/spec-tables';
+import { pageGraph } from '@/lib/seo';
+
+export const metadata = {
+	title: 'Terraform and OpenTofu',
+	description:
+		'Deploy a docuconf app from Terraform or OpenTofu: generate a module from the contract that types and checks every input, wire its outputs into a Kubernetes workload, and lint the plan against the contract before apply.',
+	alternates: { canonical: '/terraform/' },
+};
+
+<JsonLd data={pageGraph({ path: '/terraform/', title: metadata.title, description: metadata.description })} />
+
+# Terraform and OpenTofu
+
+A platform that deploys with Terraform or OpenTofu gets the same guarantees as one that runs `docuconf vet`: every input the app's contract declares is set in a way the contract allows, and every value meets its constraints, before anything reaches the cluster. Two commands provide them:
+
+- `docuconf terraform` generates a **module** from the contract, with one argument per input, typed and checked like the input, and outputs that render the inputs into the workload's env, volumes and ConfigMaps.
+- `docuconf lint terraform` checks the **plan**: what each container will actually receive, including anything written by hand beside the module.
+
+Both are offline, and the module needs no provider. This page covers the `kubernetes` target; the design for ECS, Cloud Run and Container Apps, and for Pulumi, is in [spec/IAC.md](https://github.com/Docuconf/docuconf-go/blob/main/spec/IAC.md).
+
+## Generate the module
+
+```sh
+docuconf terraform -contract contract.cue -out modules/orders-config
+```
+
+Commit the module beside your platform code, and keep it current in CI:
+
+```sh
+docuconf terraform -contract contract.cue -out modules/orders-config -check
+```
+
+`-check` exits 1 with a diff when the module is not what the contract generates today. The module runs on Terraform 1.5 or later and on OpenTofu.
+
+## Set the inputs
+
+Each argument is an object with one attribute per way the input can be set: `value`, `secret`, `config_map`, `field`, `resource_field` or `injected` for a variable, and `inline`, `config_map`, `secret`, `certificate`, `csi`, `image` or `injected` for a file input. Set exactly one, from wherever the value comes:
+
+```hcl
+module "orders_config" {
+  source = "./modules/orders-config"
+
+  DATABASE_URL = { secret = { name = kubernetes_secret_v1.db.metadata[0].name, key = "url" } }
+  LOG_LEVEL    = { value = var.environment == "prod" ? "warn" : "debug" }
+  WORKER_COUNT = { value = 8 }
+
+  serving-tls = { certificate = {
+    name = "orders-tls", secret_name = "orders-tls", renew_before = "720h"
+  } }
+  discounts = { inline = { codes = { WELCOME10 = 10 } } }
+}
+```
+
+The attributes an input does not allow are not there. A secret has no `value`, so a literal password cannot be passed. A list cannot come from a ConfigMap key, and only a TLS input takes a `certificate`.
+
+Every constraint in the contract is a validation, worded as `docuconf vet` words it, and checked at plan:
+
+```
+Error: Invalid value for variable
+
+WORKER_COUNT: 100 is above max 64
+```
+
+The same checks run again as preconditions on the outputs, so a value that is only known during apply, such as the address of a database created in the same run, is checked before the workload changes. A deprecated input that is still set prints a warning, not an error.
+
+Config-file overlays are arguments too, `overlay_<name>`, mapping variable names to values. The module reports a variable the overlay cannot carry, such as a secret or one without a `configKey`, rather than dropping it.
+
+## Wire the outputs
+
+| Output | Goes into |
+|---|---|
+| `kubernetes_env` | a `dynamic "env"` block in the app container |
+| `kubernetes_volumes`, `kubernetes_volume_mounts` | `dynamic "volume"` in the pod spec, `dynamic "volume_mount"` in the container |
+| `kubernetes_config_maps` | `kubernetes_config_map_v1` resources, with `for_each` |
+| `pod_annotations`, `pod_labels` | the pod template's metadata, for injectors such as Bank-Vaults |
+| `restart_triggers` | the ConfigMaps and Secrets whose change must restart the pods |
+
+The generated `README.md` holds the complete blocks to paste. Put `pod_annotations` on the pod template, never on the Deployment: injectors read the pod's. The linter also uses that reference to find which module a workload takes its config from.
+
+## Lint the plan
+
+```sh
+terraform plan -out plan.out
+terraform show -json plan.out > plan.json
+docuconf lint terraform plan.json
+```
+
+The linter reads the planned env, mounts and volumes of each container that takes the module's outputs, turns them back into the values a platform would give `docuconf vet`, and checks them with vet's engine. It also checks the wiring the module cannot see:
+
+```
+error: module.orders_config → kubernetes_deployment_v1.orders, container "orders-api": PORTT: is not declared in the contract, and the module did not render it; did you mean PORT? (undeclared_input)
+```
+
+It reports, among others:
+
+- an env name the contract does not declare, or one set twice;
+- a secret set as a plain value;
+- `env_from`, whose keys nobody can check before apply;
+- a file mounted at the wrong path, with `sub_path`, or writable;
+- pod annotations on the workload instead of the pod template;
+- a module edited by hand, or generated from an older contract (`-contract`).
+
+A value that is unknown at plan is never passed silently: the linter says where it is checked instead. `-explain` prints how each input is bound, `-policy` applies an environment policy as `docuconf vet` does, and `-format json` or `-format sarif` suit CI and code scanning. Secret values are never printed.
+
+## Differences from the Helm path
+
+The module renders the same env as `docuconf render` and the [Helm chart](https://github.com/Docuconf/docuconf-go/tree/main/helm). Structured file content is the same data, but Terraform has its own YAML and JSON encoders, so a ConfigMap's text, and the content hash in its name, can differ. A changed file still renames its ConfigMap and rolls the pods. Terraform has no TOML encoder, so inline TOML content is given as text.
+
+## Try it
+
+The orders example deploys from Terraform in [examples/orders/deploy/terraform](https://github.com/Docuconf/docuconf-go/tree/main/examples/orders/deploy/terraform), and its CI generates, plans and lints it on every change.
