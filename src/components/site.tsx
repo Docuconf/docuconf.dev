@@ -20,6 +20,7 @@ export const NAV_GROUPS: { title: string; pages: NavPage[] }[] = [
 		pages: [
 			{ href: '/languages/', label: 'Pick a language' },
 			{ href: '/examples/', label: 'Example apps' },
+			{ href: '/terraform/', label: 'Terraform and OpenTofu' },
 		],
 	},
 	{

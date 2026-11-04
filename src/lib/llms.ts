@@ -82,6 +82,7 @@ ${versionLines()}
 
 - [Get started: pick a language](${absolute('/languages/')}), with the SDK tiers and their criteria (${absolute('/languages/#tiers')})
 - [Example apps](${absolute('/examples/')}): the same "orders" service in every SDK, side by side
+- [Terraform and OpenTofu](${absolute('/terraform/')}): generate a module from the contract that types and checks every input, and lint the plan with \`docuconf lint terraform\`
 
 No SDK is on a package registry yet (all are v0.1 alphas), so each installs from its main branch. Each line: the Get started page (install, declare, boot error, test, export), the install command, the raw README and the example's declaration.
 
