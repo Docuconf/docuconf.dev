@@ -19,14 +19,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - id: pages
         if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - run: npm ci
       - run: npm run lint
       # Pages name SDKs only through src/lib/sdk-data.ts, and every snippet it points at exists.
@@ -41,9 +41,11 @@ jobs:
           # https://docuconf.dev for pull-request builds.
           SITE_URL: ${{ steps.pages.outputs.base_url }}
       - if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: out
+          # v4 and later leave dotfiles out unless asked; v3 kept them.
+          include-hidden-files: true
 
   deploy:
     if: github.event_name != 'pull_request'
@@ -57,4 +59,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
